@@ -19,8 +19,9 @@ public class BookOfLoreScreen extends Screen {
     public static final Identifier PAGE_TEXTURE_RIGHT = Aether.locate("textures/gui/lore_book_r.png");
 
     private final Style unicodeStyle;
-    private PageType currentPage = PageType.Landing;
+    private PageType currentPage = PageType.Info;
     private Text landingTitle, landingSubtitle, landingCategories;
+    private Text infoMobs, infoItems, infoBlocks;
 
     public BookOfLoreScreen() {
         super(NarratorManager.EMPTY);
@@ -32,6 +33,9 @@ public class BookOfLoreScreen extends Screen {
         landingTitle = new TranslatableText("item.the_aether.lore_book").setStyle(Style.EMPTY.withBold(true));
         landingSubtitle = new TranslatableText("book.edition", "1").setStyle(unicodeStyle);
         landingCategories = new TranslatableText("book.categories").setStyle(Style.EMPTY.withBold(true));
+        infoMobs = new TranslatableText("book.mobs").setStyle(Style.EMPTY.withBold(true));
+        infoItems = new TranslatableText("book.items").setStyle(Style.EMPTY.withBold(true));
+        infoBlocks = new TranslatableText("book.blocks").setStyle(Style.EMPTY.withBold(true));
 
         super.init(client, width, height);
     }
@@ -45,6 +49,8 @@ public class BookOfLoreScreen extends Screen {
 
         if (currentPage == PageType.Landing)
             renderLandingPage(matrices, w, h);
+        else
+            renderInfoPage(matrices, w, h, mouseX, mouseY, delta);
 
         super.render(matrices, mouseX, mouseY, delta);
     }
@@ -65,6 +71,12 @@ public class BookOfLoreScreen extends Screen {
         this.textRenderer.draw(matrices, landingCategories, centerX + (textRenderer.getWidth(landingCategories) * .5f), centerY - 71f, 0);
     }
 
+    private void renderInfoPage(MatrixStack matrices, int centerX, int centerY, int mouseX, int mouseY, float delta) {
+        this.client.getTextureManager().bindTexture(PAGE_TEXTURE_LEFT);
+        this.drawTexture(matrices, centerX - 136, centerY - 90, 0, 0, 136, 180);
+
+        this.textRenderer.draw(matrices, infoBlocks, centerX - (textRenderer.getWidth(infoBlocks) * .5f), centerY - 71f, 0);
+    }
     enum PageType {
         Landing, Info
     }
