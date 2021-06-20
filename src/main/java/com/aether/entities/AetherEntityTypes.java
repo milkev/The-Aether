@@ -9,21 +9,26 @@ import com.aether.entities.projectile.EnchantedDartEntity;
 import com.aether.entities.projectile.GoldenDartEntity;
 import com.aether.entities.projectile.PoisonDartEntity;
 import com.aether.entities.projectile.PoisonNeedleEntity;
-import net.minecraft.entity.*;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.DefaultAttributeRegistry;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.ServerWorldAccess;
-import net.minecraft.world.WorldAccess;
-
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.levelgen.Heightmap;
 import java.util.Random;
 
-import static net.minecraft.entity.SpawnReason.SPAWNER;
+import static net.minecraft.world.entity.MobSpawnType.SPAWNER;
 
 public class AetherEntityTypes {
     public static final EntityType<AechorPlantEntity> AECHOR_PLANT;
@@ -51,29 +56,29 @@ public class AetherEntityTypes {
     public static final EntityType<SwetEntity> GOLDEN_SWET;
 
     static {
-        AECHOR_PLANT = register("aechor_plant", SpawnGroup.MONSTER, EntityDimensions.changing(1.0F, 1.0F), (entityType, world) -> new AechorPlantEntity(world));
-        FLYING_COW = register("flying_cow", SpawnGroup.CREATURE, EntityDimensions.changing(0.9F, 1.3F), (entityType, world) -> new FlyingCowEntity(world));
-        AERBUNNY = register("aerbunny", SpawnGroup.CREATURE, EntityDimensions.changing(0.55F, 0.55F), (entityType, world) -> new AerbunnyEntity(world));
-        MOA = register("moa", SpawnGroup.CREATURE, EntityDimensions.changing(1.0F, 2.0F), (entityType, world) -> new MoaEntity(world));
-        PHYG = register("phyg", SpawnGroup.CREATURE, EntityDimensions.changing(0.9F, 1.3F), (entityType, world) -> new PhygEntity(world));
-        SHEEPUFF = register("sheepuff", SpawnGroup.CREATURE, EntityDimensions.changing(0.9F, 1.3F), (entityType, world) -> new SheepuffEntity(world));
-        COCKATRICE = register("cockatrice", SpawnGroup.MONSTER, EntityDimensions.changing(1.0F, 2.0F), (entityType, world) -> new CockatriceEntity(world));
-        CHEST_MIMIC = register("chest_mimic", SpawnGroup.MONSTER, EntityDimensions.changing(1.0F, 2.0F), (entityType, world) -> new ChestMimicEntity(world));
-        FLOATING_BLOCK = register("floating_block", 160, 20, true, EntityDimensions.changing(0.98F, 0.98F), FloatingBlockEntity::new);
-        GOLDEN_DART = register("golden_dart", SpawnGroup.MISC, EntityDimensions.changing(0.5F, 0.5F), (entityType, world) -> new GoldenDartEntity(world));
-        ENCHANTED_DART = register("enchanted_dart", SpawnGroup.MISC, EntityDimensions.changing(0.5F, 0.5F), (entityType, world) -> new EnchantedDartEntity(world));
-        POISON_DART = register("poison_dart", SpawnGroup.MISC, EntityDimensions.changing(0.5F, 0.5F), (entityType, world) -> new PoisonDartEntity(world));
-        POISON_NEEDLE = register("poison_needle", SpawnGroup.MISC, EntityDimensions.changing(0.5F, 0.5F), (entityType, world) -> new PoisonNeedleEntity(world));
-        AERWHALE = register("aerwhale", SpawnGroup.CREATURE, EntityDimensions.changing(3.0F, 1.2F), (entityType, world) -> new AerwhaleEntity(world));
+        AECHOR_PLANT = register("aechor_plant", MobCategory.MONSTER, EntityDimensions.scalable(1.0F, 1.0F), (entityType, world) -> new AechorPlantEntity(world));
+        FLYING_COW = register("flying_cow", MobCategory.CREATURE, EntityDimensions.scalable(0.9F, 1.3F), (entityType, world) -> new FlyingCowEntity(world));
+        AERBUNNY = register("aerbunny", MobCategory.CREATURE, EntityDimensions.scalable(0.55F, 0.55F), (entityType, world) -> new AerbunnyEntity(world));
+        MOA = register("moa", MobCategory.CREATURE, EntityDimensions.scalable(1.0F, 2.0F), (entityType, world) -> new MoaEntity(world));
+        PHYG = register("phyg", MobCategory.CREATURE, EntityDimensions.scalable(0.9F, 1.3F), (entityType, world) -> new PhygEntity(world));
+        SHEEPUFF = register("sheepuff", MobCategory.CREATURE, EntityDimensions.scalable(0.9F, 1.3F), (entityType, world) -> new SheepuffEntity(world));
+        COCKATRICE = register("cockatrice", MobCategory.MONSTER, EntityDimensions.scalable(1.0F, 2.0F), (entityType, world) -> new CockatriceEntity(world));
+        CHEST_MIMIC = register("chest_mimic", MobCategory.MONSTER, EntityDimensions.scalable(1.0F, 2.0F), (entityType, world) -> new ChestMimicEntity(world));
+        FLOATING_BLOCK = register("floating_block", 160, 20, true, EntityDimensions.scalable(0.98F, 0.98F), FloatingBlockEntity::new);
+        GOLDEN_DART = register("golden_dart", MobCategory.MISC, EntityDimensions.scalable(0.5F, 0.5F), (entityType, world) -> new GoldenDartEntity(world));
+        ENCHANTED_DART = register("enchanted_dart", MobCategory.MISC, EntityDimensions.scalable(0.5F, 0.5F), (entityType, world) -> new EnchantedDartEntity(world));
+        POISON_DART = register("poison_dart", MobCategory.MISC, EntityDimensions.scalable(0.5F, 0.5F), (entityType, world) -> new PoisonDartEntity(world));
+        POISON_NEEDLE = register("poison_needle", MobCategory.MISC, EntityDimensions.scalable(0.5F, 0.5F), (entityType, world) -> new PoisonNeedleEntity(world));
+        AERWHALE = register("aerwhale", MobCategory.CREATURE, EntityDimensions.scalable(3.0F, 1.2F), (entityType, world) -> new AerwhaleEntity(world));
 //        WHIRLWIND = register("whirlwind", ...);
 //        MINI_CLOUD = register("mini_cloud", ...);
 //        FIRE_MINION = register("fire_minion", ...);
 //        CRYSTAL = register("crystal", ...);
 //        PHOENIX_ARROW = register("phoenix_arrow", ...);
-        BLUE_SWET = register("blue_swet", SpawnGroup.MONSTER, EntityDimensions.changing(2.0F, 2.0F), (entityType, world) -> new BlueSwetEntity(world));
-        PURPLE_SWET = register("purple_swet", SpawnGroup.MONSTER, EntityDimensions.changing(2.0F, 2.0F), (entityType, world) -> new PurpleSwetEntity(world));
-        WHITE_SWET = register("white_swet", SpawnGroup.MONSTER, EntityDimensions.changing(2.0F, 2.0F), (entityType, world) -> new WhiteSwetEntity(world));
-        GOLDEN_SWET = register("golden_swet", SpawnGroup.MONSTER, EntityDimensions.changing(2.0F, 2.0F), (entityType, world) -> new GoldenSwetEntity(world));
+        BLUE_SWET = register("blue_swet", MobCategory.MONSTER, EntityDimensions.scalable(2.0F, 2.0F), (entityType, world) -> new BlueSwetEntity(world));
+        PURPLE_SWET = register("purple_swet", MobCategory.MONSTER, EntityDimensions.scalable(2.0F, 2.0F), (entityType, world) -> new PurpleSwetEntity(world));
+        WHITE_SWET = register("white_swet", MobCategory.MONSTER, EntityDimensions.scalable(2.0F, 2.0F), (entityType, world) -> new WhiteSwetEntity(world));
+        GOLDEN_SWET = register("golden_swet", MobCategory.MONSTER, EntityDimensions.scalable(2.0F, 2.0F), (entityType, world) -> new GoldenSwetEntity(world));
     }
 
     public static void init() {
@@ -94,41 +99,41 @@ public class AetherEntityTypes {
 
         // Don't seem to spawn if there is a restriction, i'm not sure but maybe it's because of their size?
         //SpawnRestriction.register(AERWHALE, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
-        SpawnRestriction.register(SHEEPUFF, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
-        SpawnRestriction.register(PHYG, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
-        SpawnRestriction.register(AERBUNNY, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
-        SpawnRestriction.register(MOA, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
-        SpawnRestriction.register(FLYING_COW, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
-        SpawnRestriction.register(COCKATRICE, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
-        SpawnRestriction.register(AECHOR_PLANT, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
-        SpawnRestriction.register(BLUE_SWET, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
-        SpawnRestriction.register(PURPLE_SWET, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
-        SpawnRestriction.register(WHITE_SWET, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
-        SpawnRestriction.register(GOLDEN_SWET, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
+        SpawnPlacements.register(SHEEPUFF, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
+        SpawnPlacements.register(PHYG, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
+        SpawnPlacements.register(AERBUNNY, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
+        SpawnPlacements.register(MOA, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
+        SpawnPlacements.register(FLYING_COW, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getAnimalData);
+        SpawnPlacements.register(COCKATRICE, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
+        SpawnPlacements.register(AECHOR_PLANT, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
+        SpawnPlacements.register(BLUE_SWET, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
+        SpawnPlacements.register(PURPLE_SWET, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
+        SpawnPlacements.register(WHITE_SWET, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
+        SpawnPlacements.register(GOLDEN_SWET, SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AetherEntityTypes::getHostileData);
     }
 
-    public static DefaultAttributeContainer.Builder getDefaultAttributes() {
+    public static AttributeSupplier.Builder getDefaultAttributes() {
         return LivingEntity.createLivingAttributes()
-                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 6);
+                .add(Attributes.FOLLOW_RANGE, 6);
     }
 
     public static <X extends Entity> EntityType<X> register(String name, int trackingDistance, int updateIntervalTicks, boolean alwaysUpdateVelocity, EntityDimensions size, EntityType.EntityFactory<X> factory) {
-        return Registry.register(Registry.ENTITY_TYPE, Aether.locate(name), EntityType.Builder.create(factory, SpawnGroup.MISC).maxTrackingRange(trackingDistance).trackingTickInterval(updateIntervalTicks).setDimensions(size.width, size.height).disableSaving().build(name));
+        return Registry.register(Registry.ENTITY_TYPE, Aether.locate(name), EntityType.Builder.of(factory, MobCategory.MISC).clientTrackingRange(trackingDistance).updateInterval(updateIntervalTicks).sized(size.width, size.height).noSave().build(name));
     }
 
-    public static <X extends Entity> EntityType<X> register(String name, SpawnGroup category, EntityDimensions size, EntityType.EntityFactory<X> factory) {
-        return Registry.register(Registry.ENTITY_TYPE, Aether.locate(name), EntityType.Builder.create(factory, category).setDimensions(size.width, size.height).build(name));
+    public static <X extends Entity> EntityType<X> register(String name, MobCategory category, EntityDimensions size, EntityType.EntityFactory<X> factory) {
+        return Registry.register(Registry.ENTITY_TYPE, Aether.locate(name), EntityType.Builder.of(factory, category).sized(size.width, size.height).build(name));
     }
     
-    public static void registerAttribute(EntityType<? extends LivingEntity> type, DefaultAttributeContainer container) {
-        DefaultAttributeRegistry.DEFAULT_ATTRIBUTE_REGISTRY.put(type, container);
+    public static void registerAttribute(EntityType<? extends LivingEntity> type, AttributeSupplier container) {
+        DefaultAttributes.SUPPLIERS.put(type, container);
     }
 
-    public static boolean getAnimalData(EntityType<? extends Entity> entityType, WorldAccess WorldAccess, SpawnReason SpawnReason, BlockPos blockPos, Random random) {
-        return WorldAccess.getBlockState(blockPos.down()).getBlock() == AetherBlocks.AETHER_GRASS_BLOCK && WorldAccess.getBaseLightLevel(blockPos, 0) > 8 && (SpawnReason == SPAWNER || WorldAccess.getBlockState(blockPos.down()).allowsSpawning(WorldAccess, blockPos, entityType));
+    public static boolean getAnimalData(EntityType<? extends Entity> entityType, LevelAccessor WorldAccess, MobSpawnType SpawnReason, BlockPos blockPos, Random random) {
+        return WorldAccess.getBlockState(blockPos.below()).getBlock() == AetherBlocks.AETHER_GRASS_BLOCK && WorldAccess.getRawBrightness(blockPos, 0) > 8 && (SpawnReason == SPAWNER || WorldAccess.getBlockState(blockPos.below()).isValidSpawn(WorldAccess, blockPos, entityType));
     }
 
-    public static boolean getHostileData(EntityType<? extends Entity> entityType_1, ServerWorldAccess WorldAccess_1, SpawnReason SpawnReason, BlockPos blockPos_1, Random random_1) {
-        return WorldAccess_1.getDifficulty() != Difficulty.PEACEFUL && HostileEntity.isSpawnDark(WorldAccess_1, blockPos_1, random_1) && (SpawnReason == SPAWNER || WorldAccess_1.getBlockState(blockPos_1.down()).allowsSpawning(WorldAccess_1, blockPos_1, entityType_1));
+    public static boolean getHostileData(EntityType<? extends Entity> entityType_1, ServerLevelAccessor WorldAccess_1, MobSpawnType SpawnReason, BlockPos blockPos_1, Random random_1) {
+        return WorldAccess_1.getDifficulty() != Difficulty.PEACEFUL && Monster.isDarkEnoughToSpawn(WorldAccess_1, blockPos_1, random_1) && (SpawnReason == SPAWNER || WorldAccess_1.getBlockState(blockPos_1.below()).isValidSpawn(WorldAccess_1, blockPos_1, entityType_1));
     }
 }

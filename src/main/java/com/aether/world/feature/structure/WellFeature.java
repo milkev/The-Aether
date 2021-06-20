@@ -1,16 +1,16 @@
 package com.aether.world.feature.structure;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.world.gen.feature.DefaultFeatureConfig;
-import net.minecraft.world.gen.feature.StructureFeature;
+import net.minecraft.world.level.levelgen.feature.StructureFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
-public class WellFeature extends StructureFeature<DefaultFeatureConfig> {
-    public WellFeature(Codec<DefaultFeatureConfig> codec) {
+public class WellFeature extends StructureFeature<NoneFeatureConfiguration> {
+    public WellFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
     }
 
     @Override
-    public StructureStartFactory<DefaultFeatureConfig> getStructureStartFactory() {
+    public StructureStartFactory<NoneFeatureConfiguration> getStartFactory() {
         return null; // TODO: Stubbed until revisions in 1.17
     }
 

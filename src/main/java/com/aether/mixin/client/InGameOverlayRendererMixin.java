@@ -2,14 +2,14 @@ package com.aether.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.MapColor;
-import net.minecraft.client.gui.hud.InGameOverlayRenderer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.renderer.ScreenEffectRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.MaterialColor;
 import org.spongepowered.asm.mixin.Mixin;
 
-@Mixin(InGameOverlayRenderer.class)
+@Mixin(ScreenEffectRenderer.class)
 @Environment(EnvType.CLIENT)
 public class InGameOverlayRendererMixin {
 
@@ -49,15 +49,15 @@ public class InGameOverlayRendererMixin {
 //        RenderSystem.disableBlend();
 //    }
 
-    private static BlockState getBlockStateFromEyePos(PlayerEntity playerEntity) {
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+    private static BlockState getBlockStateFromEyePos(Player playerEntity) {
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         mutable.set(playerEntity.getX(), playerEntity.getEyeY(), playerEntity.getZ());
-        return playerEntity.world.getBlockState(mutable);
+        return playerEntity.level.getBlockState(mutable);
     }
 
-    private static int[] rgbFromMaterialColor(MapColor materialColor){
-        int color = materialColor.color;
+    private static int[] rgbFromMaterialColor(MaterialColor materialColor){
+        int color = materialColor.col;
         int r = color/256/256;
         int g = (color/256)%256;
         int b = (color)%256;

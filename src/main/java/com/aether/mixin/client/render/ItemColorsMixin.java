@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ItemColors.class)
 public class ItemColorsMixin {
 
-    @Inject(method = "create", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "createDefault", at = @At("RETURN"), cancellable = true)
     private static void create(CallbackInfoReturnable<ItemColors> info) {
         ItemColors origin = info.getReturnValue();
         origin.register(((stack, tintIndex) -> 0xbce632), AetherBlocks.SKYROOT_LEAVES.asItem(), AetherBlocks.SKYROOT_LEAF_PILE.asItem());
