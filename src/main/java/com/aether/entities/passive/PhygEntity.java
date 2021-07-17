@@ -38,7 +38,7 @@ public class PhygEntity extends SaddleMountEntity {
         this.stepHeight = 1.0F;
 
         this.ignoreCameraFrustum = true;
-        this.canJumpMidAir = true;
+        //this.canJumpMidAir = true;
     }
 
     public static DefaultAttributeContainer.Builder initAttributes() {
@@ -99,10 +99,10 @@ public class PhygEntity extends SaddleMountEntity {
         return 0.65D;
     }
 
-    @Override
-    public float getMountedMoveSpeed() {
-        return 0.3F;
-    }
+//    @Override
+//    public float getMountedMoveSpeed() {
+//        return 0.3F;
+//    }
 
     @Override
     public void setJumping(boolean jump) {
@@ -118,10 +118,10 @@ public class PhygEntity extends SaddleMountEntity {
         }
     }
 
-    @Override
-    protected double getMountJumpStrength() {
-        return 5.0D;
-    }
+//    @Override
+//    protected double getMountJumpStrength() {
+//        return 5.0D;
+//    }
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState par4) {

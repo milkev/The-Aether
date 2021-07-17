@@ -1,32 +1,26 @@
 package com.aether.entities.passive;
 
-import com.aether.api.AetherAPI;
 import com.aether.api.MoaAttributes;
-import com.aether.api.moa.MoaType;
-import com.aether.component.AetherComponents;
 import com.aether.component.MoaGenes;
 import com.aether.entities.AetherEntityTypes;
 import com.aether.entities.util.SaddleMountEntity;
 import com.aether.items.AetherItems;
-import com.aether.items.MoaEgg;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -83,12 +77,12 @@ public class MoaEntity extends SaddleMountEntity implements JumpingMount {
     protected void initGoals() {
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(1, new EscapeDangerGoal(this, 2));
-        this.goalSelector.add(2, new WanderAroundFarGoal(this, 0.65F, 0.1F)); //WanderGoal
-        this.goalSelector.add(2, new TemptGoal(this, 1.0D, Ingredient.ofItems(AetherItems.NATURE_STAFF), false));
-        //this.goalSelector.add(2, new WanderAroundGoal(this, 1.0)); //WanderGoal
-        this.goalSelector.add(4, new LookAtEntityGoal(this, PlayerEntity.class, 4.5F));
-        this.goalSelector.add(5, new LookAroundGoal(this)); //LookGoal
-        this.goalSelector.add(6, new AnimalMateGoal(this, 0.25F));
+        this.goalSelector.add(3, new AnimalMateGoal(this, 0.25F));
+        this.goalSelector.add(4, new TemptGoal(this, 1.0D, Ingredient.ofItems(AetherItems.NATURE_STAFF), false));
+        this.goalSelector.add(5, new FollowParentGoal(this, 1.1D));
+        this.goalSelector.add(6, new WanderAroundFarGoal(this, 0.65F, 0.1F)); //WanderGoal
+        this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 4.5F));
+        this.goalSelector.add(8, new LookAroundGoal(this)); //LookGoal
     }
 
     @Override
@@ -235,68 +229,53 @@ public class MoaEntity extends SaddleMountEntity implements JumpingMount {
         return false;
     }
 
+    @Override
     public void travel(Vec3d movementInput) {
-        if (this.isAlive()) {
-            if (this.hasPassengers() && this.canBeControlledByRider() && this.isSaddled()) {
-                LivingEntity livingEntity = (LivingEntity)this.getPrimaryPassenger();
-                this.prevYaw = this.getYaw();
-                this.setYaw(livingEntity.getYaw());
-                this.setPitch(livingEntity.getPitch() * 0.5F);
-                this.setRotation(this.getYaw(), this.getPitch());
-                this.bodyYaw = this.getYaw();
-                this.headYaw = this.bodyYaw;
-                float f = livingEntity.sidewaysSpeed * 0.5F;
-                float g = livingEntity.forwardSpeed;
-                if (g <= 0.0F) {
-                    g *= 0.25F;
-                }
-
-                if(isLogicalSideForUpdatingMovement()) {
-                    if (this.jumpStrength > 0.0F && !this.isInAir) {
-                        double d = 0.1F * (double)this.jumpStrength * (double)this.getJumpVelocityMultiplier();
-                        double h;
-                        if (this.hasStatusEffect(StatusEffects.JUMP_BOOST)) {
-                            h = d + (double)((float)(this.getStatusEffect(StatusEffects.JUMP_BOOST).getAmplifier() + 1) * 0.1F);
-                        } else {
-                            h = d;
-                        }
-
-                        Vec3d vec3d = this.getVelocity();
-                        this.setVelocity(vec3d.x, h, vec3d.z);
-                        this.velocityDirty = true;
-                        if (g > 0.0F) {
-                            float adjVel = jumpStrength / 2F;
-                            float i = MathHelper.sin(this.getYaw() * 0.017453292F);
-                            float j = MathHelper.cos(this.getYaw() * 0.017453292F);
-                            this.setVelocity(this.getVelocity().add(-0.4F * i * adjVel, 0.0D, 0.4F * j * adjVel));
-                        }
-
-                        this.jumpStrength = 0.0F;
-                    }
-                }
-
-                if(jumpStrength <= 0.01F && onGround)
-                    isInAir = false;
-
-                this.flyingSpeed = getFlyingSpeed();
-                if (this.isLogicalSideForUpdatingMovement()) {
-                    this.setMovementSpeed(getMountedMoveSpeed());
-                    super.travel(new Vec3d(f, movementInput.y, g));
-                } else if (livingEntity instanceof PlayerEntity) {
-                    this.setVelocity(Vec3d.ZERO);
-                }
-
-                this.updateLimbs(this, false);
-            } else {
-                this.flyingSpeed = getFlyingSpeed();
-                super.travel(movementInput);
-            }
-        }
+        this.travel(this, this.saddledComponent, movementInput);
     }
 
     @Override
-    public float getMountedMoveSpeed() {
-        return getMovementSpeed() * 0.75F;
+    public boolean travel(MobEntity entity, SaddledComponent saddledEntity, Vec3d movementInput) {
+        if (!entity.isAlive()) {
+            return false;
+        } else {
+            Entity firstPassenger = entity.getFirstPassenger();
+            if (entity.hasPassengers() && entity.canBeControlledByRider() && firstPassenger instanceof PlayerEntity) {
+                entity.setYaw(firstPassenger.getYaw());
+                entity.prevYaw = entity.getYaw();
+                entity.setPitch(firstPassenger.getPitch() * 0.5F);
+                entity.setRotation(entity.getYaw(), entity.getPitch());
+                entity.bodyYaw = entity.getYaw();
+                entity.headYaw = entity.getYaw();
+                entity.stepHeight = 1.0F;
+                entity.flyingSpeed = getFlyingSpeed();
+                if (saddledEntity.boosted && saddledEntity.boostedTime++ > saddledEntity.currentBoostTime) {
+                    saddledEntity.boosted = false;
+                }
+
+                if (entity.isLogicalSideForUpdatingMovement()) {
+                    float speed = this.getSaddledSpeed();
+                    if (saddledEntity.boosted) {
+                        speed += speed * 1.15F * MathHelper.sin((float)saddledEntity.boostedTime / (float)saddledEntity.currentBoostTime * 3.1415927F);
+                    }
+
+                    entity.setMovementSpeed(speed);
+                    this.setMovementInput(new Vec3d(0.0D, 0.0D, 1.0D));
+                    entity.bodyTrackingIncrements = 0;
+                } else {
+                    entity.updateLimbs(entity, false);
+                    entity.setVelocity(Vec3d.ZERO);
+                }
+
+                entity.tryCheckBlockCollision();
+                return true;
+            } else {
+                entity.stepHeight = 0.5F;
+                entity.flyingSpeed = getFlyingSpeed();
+                this.setMovementInput(movementInput);
+                return false;
+            }
+        }
     }
 
     @Override
@@ -304,21 +283,17 @@ public class MoaEntity extends SaddleMountEntity implements JumpingMount {
         return getGenes().getAttribute(MoaAttributes.GROUND_SPEED) * 0.65F;
     }
 
+    @Override
+    public float getSaddledSpeed() {
+        return getMovementSpeed() * 0.75F;
+    }
+
     public float getFlyingSpeed() {
         return isGliding() ? getGenes().getAttribute(MoaAttributes.GLIDING_SPEED) * 0.8F : getMovementSpeed() * 0.1F;
     }
 
-
-
-    public void setToAdult() {
-        this.setBreedingAge(0);
-    }
-
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
-        ItemStack stack = player.getStackInHand(hand);
-
-
         return super.interactMob(player, hand);
     }
 
@@ -352,7 +327,7 @@ public class MoaEntity extends SaddleMountEntity implements JumpingMount {
 
     public void fall() {
         if (this.getVelocity().y < 0.0D && !this.isSneaking())
-            this.setVelocity(this.getVelocity().multiply(1.0D,  isGliding() ? getGenes().getAttribute(MoaAttributes.GLIDING_DECAY) * 1.4 : 1D, 1.0D));
+            this.setVelocity(this.getVelocity().multiply(1.0D, isGliding() ? getGenes().getAttribute(MoaAttributes.GLIDING_DECAY) * 1.4 : 1D, 1.0D));
     }
 
     @Override
@@ -382,17 +357,18 @@ public class MoaEntity extends SaddleMountEntity implements JumpingMount {
 
     @Override
     public boolean canJump() {
-        return true;
+        return this.isSaddled();
     }
 
     @Override
     public void startJumping(int height) {
+        this.jumping = true;
         this.world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_PHANTOM_FLAP, SoundCategory.NEUTRAL, 7.5F, MathHelper.clamp(this.random.nextFloat(), 0.55f, 0.8f));
     }
 
     @Override
     public void stopJumping() {
-
+        this.jumping = false;
     }
 
     public MoaGenes getGenes() {

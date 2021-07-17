@@ -17,6 +17,9 @@ accessible    method    net/minecraft/client/render/entity/EntityRenderers      
 accessible    method    net/minecraft/world/gen/feature/StructureFeature            register                     (Ljava/lang/String;Lnet/minecraft/world/gen/feature/StructureFeature;Lnet/minecraft/world/gen/GenerationStep$Feature;)Lnet/minecraft/world/gen/feature/StructureFeature;
 accessible    method    net/minecraft/block/FireBlock                               registerFlammableBlock       (Lnet/minecraft/block/Block;II)V
 accessible    method    net/minecraft/block/ComposterBlock                          registerCompostableItem      (FLnet/minecraft/item/ItemConvertible;)V
+accessible    method    net/minecraft/entity/Entity                                 setRotation                  (FF)V
+accessible    method    net/minecraft/entity/Entity                                 tryCheckBlockCollision       ()V
+accessible    field     net/minecraft/entity/LivingEntity                           bodyTrackingIncrements       I
 accessible    field     net/minecraft/entity/attribute/DefaultAttributeRegistry     DEFAULT_ATTRIBUTE_REGISTRY   Ljava/util/Map;
 accessible    field     net/minecraft/client/render/RenderLayers                    BLOCKS                       Ljava/util/Map;
 accessible    field     net/minecraft/client/render/RenderLayers                    FLUIDS                       Ljava/util/Map;

@@ -42,7 +42,7 @@ public class FlyingCowEntity extends SaddleMountEntity {
         this.jumpsRemaining = 0;
         this.stepHeight = 1.0F;
         this.ignoreCameraFrustum = true;
-        this.canJumpMidAir = true;
+        //this.canJumpMidAir = true;
     }
 
     public static DefaultAttributeContainer.Builder initAttributes() {
@@ -104,10 +104,10 @@ public class FlyingCowEntity extends SaddleMountEntity {
         return 1.15D;
     }
 
-    @Override
-    public float getMountedMoveSpeed() {
-        return 0.3F;
-    }
+//    @Override
+//    public float getMountedMoveSpeed() {
+//        return 0.3F;
+//    }
 
     @Override
     public void setJumping(boolean jump) {
@@ -181,8 +181,8 @@ public class FlyingCowEntity extends SaddleMountEntity {
         return null;//AetherLootTableList.ENTITIES_FLYING_COW;
     }
 
-    @Override
-    protected double getMountJumpStrength() {
-        return 5.0D;
-    }
+//    @Override
+//    protected double getMountJumpStrength() {
+//        return 5.0D;
+//    }
 }
