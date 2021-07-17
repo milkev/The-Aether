@@ -4,6 +4,7 @@
     "feature": {
       "type": "the_aether:quicksoil",
       "config": {
+        "genType": "legacy"
       }
     },
     "decorator": {

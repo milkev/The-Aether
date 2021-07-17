@@ -10,6 +10,7 @@
             "double_drops": "true"
           }
         },
+        "genType": "legacy",
         "flat": false,
         "maxRadius": 10,
         "y": 32

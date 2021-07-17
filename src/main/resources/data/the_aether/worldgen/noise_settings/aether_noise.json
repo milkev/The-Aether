@@ -36,7 +36,7 @@
     "min_y": 0,
     "height": 128,
     "size_horizontal": 2,
-    "size_vertical": 1,
+    "size_vertical": 2,
     "density_factor": 0,
     "density_offset": 0,
     "simplex_surface_noise": false,
@@ -44,20 +44,20 @@
     "island_noise_override": false,
     "amplified": false,
     "sampling": {
-      "xz_scale": 1.8,
-      "xz_factor": 60,
+      "xz_scale": 2,
+      "xz_factor": 80,
       "y_scale": 1.0,
-      "y_factor": 90
+      "y_factor": 80
     },
     "top_slide": {
-      "target": -16,
-      "size": 20,
-      "offset": 4
+      "target": -30,
+      "size": 7,
+      "offset": 1
     },
     "bottom_slide": {
-      "target": -20,
-      "size": 8,
-      "offset": 0
+      "target": -30,
+      "size": 7,
+      "offset": 1
     }
   }
 }
