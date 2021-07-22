@@ -2,8 +2,8 @@ package com.aether.mixin.village;
 
 import com.aether.village.AetherVillagerProfessionExtensions;
 import com.google.common.collect.ImmutableSet;
-import net.minecraft.block.Block;
-import net.minecraft.village.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.level.block.Block;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -14,10 +14,10 @@ public abstract class VillagerProfessionMixin implements AetherVillagerProfessio
     @Shadow
     @Mutable
     @Final
-    private ImmutableSet<Block> secondaryJobSites;
+    private ImmutableSet<Block> secondaryPoi;
 
     @Override
     public void addSecondaryJobSite(Block jobSite) {
-        secondaryJobSites = ImmutableSet.<Block>builder().addAll(secondaryJobSites).add(jobSite).build();
+        secondaryPoi = ImmutableSet.<Block>builder().addAll(secondaryPoi).add(jobSite).build();
     }
 }

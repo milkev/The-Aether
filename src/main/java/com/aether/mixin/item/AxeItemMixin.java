@@ -2,24 +2,28 @@ package com.aether.mixin.item;
 
 import com.aether.blocks.AetherBlocks;
 import com.aether.loot.AetherLootTables;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.PillarBlock;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootContext;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.loot.context.LootContextTypes;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.tag.Tag;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.Tag;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,16 +34,16 @@ import java.util.List;
 import java.util.Map;
 
 @Mixin(AxeItem.class)
-public class AxeItemMixin extends MiningToolItem {
+public class AxeItemMixin extends DiggerItem {
 
-    protected AxeItemMixin(float attackDamage, float attackSpeed, ToolMaterial material, Tag<Block> effectiveBlocks, Settings settings) {
+    protected AxeItemMixin(float attackDamage, float attackSpeed, Tier material, Tag<Block> effectiveBlocks, Properties settings) {
         super(attackDamage, attackSpeed, material, effectiveBlocks, settings);
     }
 
-    @Inject(at = @At("HEAD"), method = "useOnBlock", cancellable = true)
-    public void useOnBlock(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
-        World world = context.getWorld();
-        BlockPos blockPos = context.getBlockPos();
+    @Inject(at = @At("HEAD"), method = "useOn", cancellable = true)
+    public void useOnBlock(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
+        Level world = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
         BlockState blockState = world.getBlockState(blockPos);
         Map<Block, Block> AETHER_STRIPPED_BLOCKS = new HashMap<>();
         AETHER_STRIPPED_BLOCKS.put(AetherBlocks.CRYSTAL_LOG, AetherBlocks.STRIPPED_CRYSTAL_LOG);
@@ -51,25 +55,25 @@ public class AxeItemMixin extends MiningToolItem {
         Block block = AETHER_STRIPPED_BLOCKS.get(blockState.getBlock());
 
         if (block != null) {
-            PlayerEntity playerEntity = context.getPlayer();
-            world.playSound(playerEntity, blockPos, SoundEvents.ITEM_AXE_STRIP, SoundCategory.BLOCKS, 1.0F, 1.0F);
-            if (!world.isClient) {
-                world.setBlockState(blockPos, block.getDefaultState().with(PillarBlock.AXIS, blockState.get(PillarBlock.AXIS)), 11);
+            Player playerEntity = context.getPlayer();
+            world.playSound(playerEntity, blockPos, SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 1.0F, 1.0F);
+            if (!world.isClientSide) {
+                world.setBlock(blockPos, block.defaultBlockState().setValue(RotatedPillarBlock.AXIS, blockState.getValue(RotatedPillarBlock.AXIS)), 11);
                 if (playerEntity != null)
-                    context.getStack().damage(1, playerEntity, (p) -> p.sendToolBreakStatus(context.getHand()));
+                    context.getItemInHand().hurtAndBreak(1, playerEntity, (p) -> p.broadcastBreakEvent(context.getHand()));
 
                 if (block == AetherBlocks.STRIPPED_GOLDEN_OAK_LOG) {
-                    ServerWorld server = (ServerWorld) world;
-                    LootTable supplier = server.getServer().getLootManager().getTable(AetherLootTables.GOLDEN_OAK_STRIPPING);
-                    List<ItemStack> items = supplier.generateLoot(new LootContext.Builder(server).parameter(LootContextParameters.BLOCK_STATE, world.getBlockState(blockPos)).parameter(LootContextParameters.ORIGIN, new Vec3d(0,0,0)).parameter(LootContextParameters.TOOL, context.getStack()).build(LootContextTypes.BLOCK));
-                    Vec3d offsetDirection = context.getHitPos();
+                    ServerLevel server = (ServerLevel) world;
+                    LootTable supplier = server.getServer().getLootTables().get(AetherLootTables.GOLDEN_OAK_STRIPPING);
+                    List<ItemStack> items = supplier.getRandomItems(new LootContext.Builder(server).withParameter(LootContextParams.BLOCK_STATE, world.getBlockState(blockPos)).withParameter(LootContextParams.ORIGIN, new Vec3(0,0,0)).withParameter(LootContextParams.TOOL, context.getItemInHand()).create(LootContextParamSets.BLOCK));
+                    Vec3 offsetDirection = context.getClickLocation();
                     for (ItemStack item : items) {
-                        ItemEntity itemEntity = new ItemEntity(context.getWorld(), offsetDirection.x, offsetDirection.y, offsetDirection.z, item);
-                        context.getWorld().spawnEntity(itemEntity);
+                        ItemEntity itemEntity = new ItemEntity(context.getLevel(), offsetDirection.x, offsetDirection.y, offsetDirection.z, item);
+                        context.getLevel().addFreshEntity(itemEntity);
                     }
                 }
             }
-            cir.setReturnValue(ActionResult.success(world.isClient));
+            cir.setReturnValue(InteractionResult.sidedSuccess(world.isClientSide));
         }
     }
 }

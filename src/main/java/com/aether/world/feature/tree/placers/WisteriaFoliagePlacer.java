@@ -6,49 +6,48 @@ import com.aether.world.feature.tree.AetherTreeHell;
 import com.google.common.collect.Sets;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.intprovider.IntProvider;
-import net.minecraft.world.TestableWorld;
-import net.minecraft.world.gen.feature.TreeFeature;
-import net.minecraft.world.gen.feature.TreeFeatureConfig;
-import net.minecraft.world.gen.foliage.FoliagePlacer;
-import net.minecraft.world.gen.foliage.FoliagePlacerType;
-
 import java.util.Random;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.valueproviders.IntProvider;
+import net.minecraft.world.level.LevelSimulatedReader;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.feature.TreeFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
+import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
+import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacerType;
 
 import static com.aether.blocks.natural.AetherHangerBlock.TIP;
 
 public class WisteriaFoliagePlacer extends FoliagePlacer {
 
     public static final Codec<WisteriaFoliagePlacer> CODEC = RecordCodecBuilder.create((instance) ->
-            fillFoliagePlacerFields(instance).apply(instance, WisteriaFoliagePlacer::new));
+            foliagePlacerParts(instance).apply(instance, WisteriaFoliagePlacer::new));
 
     public WisteriaFoliagePlacer(IntProvider radius, IntProvider offset) {
         super(radius, offset);
     }
 
     @Override
-    protected FoliagePlacerType<?> getType() {
+    protected FoliagePlacerType<?> type() {
         return AetherTreeHell.WISTERIA_FOLIAGE;
     }
 
     @Override
-    protected void generate(TestableWorld world, BiConsumer<BlockPos, BlockState> replacer, Random random, TreeFeatureConfig config, int trunkHeight, TreeNode treeNode, int foliageHeight, int radius, int offset) {
+    protected void createFoliage(LevelSimulatedReader world, BiConsumer<BlockPos, BlockState> replacer, Random random, TreeConfiguration config, int trunkHeight, FoliageAttachment treeNode, int foliageHeight, int radius, int offset) {
         Set<BlockPos> leaves = Sets.newHashSet();
         if(radius <= 3)
             radius = 3;
 
-        radius -= treeNode.getFoliageRadius();
-        BlockPos nodePos = treeNode.getCenter();
-        BlockPos altNodePos = nodePos.up(offset);
+        radius -= treeNode.radiusOffset();
+        BlockPos nodePos = treeNode.pos();
+        BlockPos altNodePos = nodePos.above(offset);
 
-        BlockState leafBlock = config.foliageProvider.getBlockState(random, nodePos);
-        BlockState hanger = Blocks.AIR.getDefaultState();
+        BlockState leafBlock = config.foliageProvider.getState(random, nodePos);
+        BlockState hanger = Blocks.AIR.defaultBlockState();
 
         if(leafBlock.getBlock() instanceof AetherLeavesBlock || leafBlock.getBlock() instanceof AuralLeavesBlock) {
             hanger = AetherLeavesBlock.getHanger(leafBlock);
@@ -57,8 +56,8 @@ public class WisteriaFoliagePlacer extends FoliagePlacer {
         for(int i = -radius; i <= radius; i++) {
             for (int j = -radius; j <= radius; j++) {
                 for (int k = 0; k < radius; k++) {
-                    BlockPos offPos = nodePos.add(Math.signum(i) * Math.abs(i)-k, k, Math.signum(j) * Math.abs(j)-k);
-                    if((world.testBlockState(offPos, AbstractBlock.AbstractBlockState::isAir) || TreeFeature.canReplace(world, offPos)) && offPos.isWithinDistance(random.nextBoolean() ? nodePos : altNodePos, radius)) {
+                    BlockPos offPos = nodePos.offset(Math.signum(i) * Math.abs(i)-k, k, Math.signum(j) * Math.abs(j)-k);
+                    if((world.isStateAtPosition(offPos, BlockBehaviour.BlockStateBase::isAir) || TreeFeature.validTreePos(world, offPos)) && offPos.closerThan(random.nextBoolean() ? nodePos : altNodePos, radius)) {
                         replacer.accept(offPos, leafBlock);
                         leaves.add(offPos);
                     }
@@ -67,29 +66,29 @@ public class WisteriaFoliagePlacer extends FoliagePlacer {
         }
         for (int i = -radius; i < radius; i++) {
             for (int j = -radius; j < radius; j++) {
-                BlockPos offPos = nodePos.add(i, 0, j);
+                BlockPos offPos = nodePos.offset(i, 0, j);
                 if(leaves.contains(offPos) && random.nextBoolean()) {
-                    offPos = offPos.down();
+                    offPos = offPos.below();
                     int hangerLength = random.nextInt(3);
                     int step = 0;
-                    while (step <= hangerLength && world.testBlockState(offPos, AbstractBlock.AbstractBlockState::isAir)) {
-                        replacer.accept(offPos, hanger.with(TIP, false));
-                        offPos = offPos.down();
+                    while (step <= hangerLength && world.isStateAtPosition(offPos, BlockBehaviour.BlockStateBase::isAir)) {
+                        replacer.accept(offPos, hanger.setValue(TIP, false));
+                        offPos = offPos.below();
                         step++;
                     }
-                    replacer.accept(offPos.up(), hanger.with(TIP, true));
+                    replacer.accept(offPos.above(), hanger.setValue(TIP, true));
                 }
             }
         }
     }
 
     @Override
-    public int getRandomHeight(Random random, int trunkHeight, TreeFeatureConfig config) {
+    public int foliageHeight(Random random, int trunkHeight, TreeConfiguration config) {
         return 0;
     }
 
     @Override
-    protected boolean isInvalidForLeaves(Random random, int baseHeight, int dx, int y, int dz, boolean giantTrunk) {
+    protected boolean shouldSkipLocation(Random random, int baseHeight, int dx, int y, int dz, boolean giantTrunk) {
         return false;
     }
 }

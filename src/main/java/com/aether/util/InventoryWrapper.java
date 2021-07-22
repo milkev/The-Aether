@@ -1,41 +1,41 @@
 package com.aether.util;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * A simple {@code Inventory} implementation with only default methods + an item list getter.
  *
  * Originally by Juuz
  */
-public interface InventoryWrapper extends Inventory {
+public interface InventoryWrapper extends Container {
     /**
      * Gets the item list of this inventory.
      * Must return the same instance every time it's called.
      */
-    DefaultedList<ItemStack> getItems();
+    NonNullList<ItemStack> getItems();
     // Creation
     /**
      * Creates an inventory from the item list.
      */
-    static InventoryWrapper of(DefaultedList<ItemStack> items) {
+    static InventoryWrapper of(NonNullList<ItemStack> items) {
         return () -> items;
     }
     /**
      * Creates a new inventory with the size.
      */
     static InventoryWrapper ofSize(int size) {
-        return of(DefaultedList.ofSize(size, ItemStack.EMPTY));
+        return of(NonNullList.withSize(size, ItemStack.EMPTY));
     }
     // Inventory
     /**
      * Returns the inventory size.
      */
     @Override
-    default int size() {
+    default int getContainerSize() {
         return getItems().size();
     }
     /**
@@ -43,8 +43,8 @@ public interface InventoryWrapper extends Inventory {
      */
     @Override
     default boolean isEmpty() {
-        for (int i = 0; i < size(); i++) {
-            ItemStack stack = getStack(i);
+        for (int i = 0; i < getContainerSize(); i++) {
+            ItemStack stack = getItem(i);
             if (!stack.isEmpty()) {
                 return false;
             }
@@ -55,15 +55,15 @@ public interface InventoryWrapper extends Inventory {
      * Gets the item in the slot.
      */
     @Override
-    default ItemStack getStack(int slot) {
+    default ItemStack getItem(int slot) {
         return getItems().get(slot);
     }
 
     default int getItemSlot(ItemStack stack) {
-        DefaultedList<ItemStack> inv = getItems();
+        NonNullList<ItemStack> inv = getItems();
         for (int i = 0; i < inv.size(); i++) {
             ItemStack item = inv.get(i);
-            if(item.getMaxCount() > item.getCount() && item.isItemEqual(stack)) {
+            if(item.getMaxStackSize() > item.getCount() && item.sameItemStackIgnoreDurability(stack)) {
                 return i;
             }
         }
@@ -75,10 +75,10 @@ public interface InventoryWrapper extends Inventory {
      * takes all items in that slot.
      */
     @Override
-    default ItemStack removeStack(int slot, int count) {
-        ItemStack result = Inventories.splitStack(getItems(), slot, count);
+    default ItemStack removeItem(int slot, int count) {
+        ItemStack result = ContainerHelper.removeItem(getItems(), slot, count);
         if (!result.isEmpty()) {
-            markDirty();
+            setChanged();
         }
         return result;
     }
@@ -86,29 +86,29 @@ public interface InventoryWrapper extends Inventory {
      * Removes the current stack in the {@code slot} and returns it.
      */
     @Override
-    default ItemStack removeStack(int slot) {
-        return Inventories.removeStack(getItems(), slot);
+    default ItemStack removeItemNoUpdate(int slot) {
+        return ContainerHelper.takeItem(getItems(), slot);
     }
     @Override
-    default void setStack(int slot, ItemStack stack) {
+    default void setItem(int slot, ItemStack stack) {
         getItems().set(slot, stack);
-        if (stack.getCount() > getMaxCountPerStack()) {
-            stack.setCount(getMaxCountPerStack());
+        if (stack.getCount() > getMaxStackSize()) {
+            stack.setCount(getMaxStackSize());
         }
     }
     /**
      * Clears {@linkplain #getItems() the item list}}.
      */
     @Override
-    default void clear() {
+    default void clearContent() {
         getItems().clear();
     }
     @Override
-    default void markDirty() {
+    default void setChanged() {
         // Override if you want behavior.
     }
     @Override
-    default boolean canPlayerUse(PlayerEntity player) {
+    default boolean stillValid(Player player) {
         return true;
     }
 }

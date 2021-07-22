@@ -1,16 +1,16 @@
 package com.aether.mixin.entity;
 
 import com.aether.blocks.AetherBlocks;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(targets = "net/minecraft/entity/passive/RabbitEntity$EatCarrotCropGoal")
+@Mixin(targets = "net/minecraft/world/entity/animal/Rabbit$RaidGardenGoal")
 public abstract class EatCarrotCropGoalMixin {
-    @Redirect(method = "isTargetPos(Lnet/minecraft/world/WorldView;Lnet/minecraft/util/math/BlockPos;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;isOf(Lnet/minecraft/block/Block;)Z"))
+    @Redirect(method = "isValidTarget(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
     public boolean isThisOrAetherFarmland(BlockState self, Block block) {
-        return self.isOf(block) || self.isOf(AetherBlocks.AETHER_FARMLAND);
+        return self.is(block) || self.is(AetherBlocks.AETHER_FARMLAND);
     }
 }

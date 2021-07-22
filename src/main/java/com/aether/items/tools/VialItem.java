@@ -2,114 +2,118 @@ package com.aether.items.tools;
 
 import com.aether.blocks.AetherBlocks;
 import com.aether.items.AetherItems;
-import net.minecraft.block.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FlowableFluid;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.RaycastContext;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.LiquidBlockContainer;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 public class VialItem extends Item {
 
     private final Fluid fluid;
 
-    public VialItem(Fluid fluid, Settings settings) {
+    public VialItem(Fluid fluid, Properties settings) {
         super(settings);
         this.fluid = fluid;
     }
 
-    public static ItemStack getEmptiedStack(ItemStack stack, PlayerEntity player) {
-        return !player.getAbilities().creativeMode ? new ItemStack(AetherItems.QUICKSOIL_VIAL) : stack;
+    public static ItemStack getEmptiedStack(ItemStack stack, Player player) {
+        return !player.getAbilities().instabuild ? new ItemStack(AetherItems.QUICKSOIL_VIAL) : stack;
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack itemStack = user.getStackInHand(hand);
-        BlockHitResult hitResult = raycast(world, user, this.fluid == Fluids.EMPTY ? RaycastContext.FluidHandling.SOURCE_ONLY : RaycastContext.FluidHandling.NONE);
+    public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+        ItemStack itemStack = user.getItemInHand(hand);
+        BlockHitResult hitResult = getPlayerPOVHitResult(world, user, this.fluid == Fluids.EMPTY ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
         if (hitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos blockPos = hitResult.getBlockPos();
-            Direction direction = hitResult.getSide();
-            BlockPos blockPos2 = blockPos.offset(direction);
-            if (world.canPlayerModifyAt(user, blockPos) && user.canPlaceOn(blockPos2, direction, itemStack)) {
+            Direction direction = hitResult.getDirection();
+            BlockPos blockPos2 = blockPos.relative(direction);
+            if (world.mayInteract(user, blockPos) && user.mayUseItemAt(blockPos2, direction, itemStack)) {
                 BlockState blockState;
                 // Originally, vials couldn't pick up dense aercloud. If this was intended, remove this if statement
                 if (this.fluid == Fluids.EMPTY) {
                     blockState = world.getBlockState(blockPos);
-                    if (blockState.getBlock() instanceof FluidDrainable && blockState.getFluidState().getFluid().equals(AetherBlocks.DENSE_AERCLOUD_STILL)) {
-                        FluidDrainable fluidDrainable = (FluidDrainable) blockState.getBlock();
-                        ItemStack itemStack2 = fluidDrainable.tryDrainFluid(world, blockPos, blockState);
+                    if (blockState.getBlock() instanceof BucketPickup && blockState.getFluidState().getType().equals(AetherBlocks.DENSE_AERCLOUD_STILL)) {
+                        BucketPickup fluidDrainable = (BucketPickup) blockState.getBlock();
+                        ItemStack itemStack2 = fluidDrainable.pickupBlock(world, blockPos, blockState);
                         if (!itemStack2.isEmpty()) {
-                            world.emitGameEvent(user, GameEvent.FLUID_PICKUP, blockPos);
-                            ItemStack itemStack3 = ItemUsage.exchangeStack(itemStack, user, new ItemStack(AetherItems.AERCLOUD_VIAL));
+                            world.gameEvent(user, GameEvent.FLUID_PICKUP, blockPos);
+                            ItemStack itemStack3 = ItemUtils.createFilledResult(itemStack, user, new ItemStack(AetherItems.AERCLOUD_VIAL));
 
-                            return TypedActionResult.success(itemStack3, world.isClient());
+                            return InteractionResultHolder.sidedSuccess(itemStack3, world.isClientSide());
                         }
                     }
 
-                    return TypedActionResult.fail(itemStack);
+                    return InteractionResultHolder.fail(itemStack);
                 } else {
                     blockState = world.getBlockState(blockPos);
-                    BlockPos blockPos3 = blockState.getBlock() instanceof FluidFillable && this.fluid == AetherBlocks.DENSE_AERCLOUD_STILL ? blockPos : blockPos2;
+                    BlockPos blockPos3 = blockState.getBlock() instanceof LiquidBlockContainer && this.fluid == AetherBlocks.DENSE_AERCLOUD_STILL ? blockPos : blockPos2;
                     if (placeFluid(user, world, blockPos3, hitResult)) {
-                        return TypedActionResult.success(getEmptiedStack(itemStack, user), world.isClient());
+                        return InteractionResultHolder.sidedSuccess(getEmptiedStack(itemStack, user), world.isClientSide());
                     } else {
-                        return TypedActionResult.fail(itemStack);
+                        return InteractionResultHolder.fail(itemStack);
                     }
                 }
             } else {
-                return TypedActionResult.fail(itemStack);
+                return InteractionResultHolder.fail(itemStack);
             }
         }
-        return TypedActionResult.fail(itemStack);
+        return InteractionResultHolder.fail(itemStack);
     }
 
-    private boolean placeFluid(PlayerEntity player, World world, BlockPos pos, BlockHitResult hitResult) {
-        if (!(this.fluid instanceof FlowableFluid)) {
+    private boolean placeFluid(Player player, Level world, BlockPos pos, BlockHitResult hitResult) {
+        if (!(this.fluid instanceof FlowingFluid)) {
             return false;
         } else {
             BlockState blockState = world.getBlockState(pos);
             Block block = blockState.getBlock();
             Material material = blockState.getMaterial();
-            boolean bl = blockState.canBucketPlace(this.fluid);
-            boolean bl2 = blockState.isAir() || bl || block instanceof FluidFillable && ((FluidFillable) block).canFillWithFluid(world, pos, blockState, this.fluid);
+            boolean bl = blockState.canBeReplaced(this.fluid);
+            boolean bl2 = blockState.isAir() || bl || block instanceof LiquidBlockContainer && ((LiquidBlockContainer) block).canPlaceLiquid(world, pos, blockState, this.fluid);
             if (!bl2) {
-                return hitResult != null && this.placeFluid(player, world, hitResult.getBlockPos().offset(hitResult.getSide()), null);
-            } else if (world.getDimension().isUltrawarm() && this.fluid.equals(AetherBlocks.DENSE_AERCLOUD_STILL)) {
+                return hitResult != null && this.placeFluid(player, world, hitResult.getBlockPos().relative(hitResult.getDirection()), null);
+            } else if (world.dimensionType().ultraWarm() && this.fluid.equals(AetherBlocks.DENSE_AERCLOUD_STILL)) {
                 int i = pos.getX();
                 int j = pos.getY();
                 int k = pos.getZ();
-                world.playSound(player, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (world.random.nextFloat() - world.random.nextFloat()) * 0.8F);
+                world.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (world.random.nextFloat() - world.random.nextFloat()) * 0.8F);
 
                 for (int l = 0; l < 8; ++l) {
                     world.addParticle(ParticleTypes.LARGE_SMOKE, (double) i + Math.random(), (double) j + Math.random(), (double) k + Math.random(), 0.0D, 0.0D, 0.0D);
                 }
 
                 return true;
-            } else if (block instanceof FluidFillable && this.fluid == AetherBlocks.DENSE_AERCLOUD_STILL) {
-                ((FluidFillable) block).tryFillWithFluid(world, pos, blockState, ((FlowableFluid) this.fluid).getStill(false));
+            } else if (block instanceof LiquidBlockContainer && this.fluid == AetherBlocks.DENSE_AERCLOUD_STILL) {
+                ((LiquidBlockContainer) block).placeLiquid(world, pos, blockState, ((FlowingFluid) this.fluid).getSource(false));
 //                this.playEmptyingSound(player, world, pos);
                 return true;
             } else {
-                if (!world.isClient && bl && !material.isLiquid()) {
-                    world.breakBlock(pos, true);
+                if (!world.isClientSide && bl && !material.isLiquid()) {
+                    world.destroyBlock(pos, true);
                 }
 
                 //                    this.playEmptyingSound(player, world, pos);
-                return world.setBlockState(pos, this.fluid.getDefaultState().getBlockState(), 11) || blockState.getFluidState().isStill();
+                return world.setBlock(pos, this.fluid.defaultFluidState().createLegacyBlock(), 11) || blockState.getFluidState().isSource();
             }
         }
     }

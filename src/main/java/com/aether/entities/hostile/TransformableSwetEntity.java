@@ -4,21 +4,21 @@ import com.aether.blocks.AetherBlocks;
 import com.aether.blocks.natural.BlueberryBushBlock;
 import com.aether.entities.AetherEntityTypes;
 import com.aether.items.AetherItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 
 public abstract class TransformableSwetEntity extends SwetEntity{
-    public TransformableSwetEntity(World world) {
+    public TransformableSwetEntity(Level world) {
         super(world);
     }
 
-    public TransformableSwetEntity(EntityType<? extends SwetEntity> entityType, World world) {
+    public TransformableSwetEntity(EntityType<? extends SwetEntity> entityType, Level world) {
         super(entityType, world);
     }
 
@@ -26,7 +26,7 @@ public abstract class TransformableSwetEntity extends SwetEntity{
         if(!this.getType().equals(type) && !this.isRemoved()) {
             SwetEntity swet = (this.convertTo(type, true));
             swet.setSize(this.getSize(), false);
-            world.spawnEntity(swet);
+            level.addFreshEntity(swet);
             return true;
         }
         return false;
@@ -35,16 +35,16 @@ public abstract class TransformableSwetEntity extends SwetEntity{
     @Override
     protected void onEntityCollision(Entity entity) {
         super.onEntityCollision(entity);
-        if(entity.squaredDistanceTo(this) <= 1 && this.getSize() > 1){
+        if(entity.distanceToSqr(this) <= 1 && this.getSize() > 1){
             if (entity instanceof CockatriceEntity || entity instanceof AechorPlantEntity) {
                 this.changeType(AetherEntityTypes.PURPLE_SWET);
             }
             if (entity instanceof ItemEntity item){
-                if (item.getStack().getItem() == AetherItems.BLUEBERRY){
+                if (item.getItem().getItem() == AetherItems.BLUEBERRY){
                     this.changeType(AetherEntityTypes.BLUE_SWET);
                     item.remove(RemovalReason.KILLED);
                 }
-                if (item.getStack().getItem() == AetherItems.GOLDEN_AMBER){
+                if (item.getItem().getItem() == AetherItems.GOLDEN_AMBER){
                     this.changeType(AetherEntityTypes.GOLDEN_SWET);
                     item.remove(RemovalReason.KILLED);
                 }
@@ -52,7 +52,7 @@ public abstract class TransformableSwetEntity extends SwetEntity{
         }
     }
 
-    public boolean suggestTypeChange(World world, BlockPos blockPos, BlockState state){
+    public boolean suggestTypeChange(Level world, BlockPos blockPos, BlockState state){
         Block block = state.getBlock();
         if (block == AetherBlocks.GOLDEN_OAK_LOG ||
                 block == AetherBlocks.GOLDEN_OAK_LEAVES ||
@@ -68,10 +68,10 @@ public abstract class TransformableSwetEntity extends SwetEntity{
     }
 
     @Override
-    protected void onBlockCollision(BlockState state) {
-        super.onBlockCollision(state);
-        if (state.getFluidState().getFluid() == Fluids.WATER ||
-                state.getFluidState().getFluid() == Fluids.FLOWING_WATER) {
+    protected void onInsideBlock(BlockState state) {
+        super.onInsideBlock(state);
+        if (state.getFluidState().getType() == Fluids.WATER ||
+                state.getFluidState().getType() == Fluids.FLOWING_WATER) {
             this.changeType(AetherEntityTypes.BLUE_SWET);
         }
     }

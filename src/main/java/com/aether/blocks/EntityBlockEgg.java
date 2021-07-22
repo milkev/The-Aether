@@ -1,39 +1,38 @@
 package com.aether.blocks;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
-
 import java.util.function.BiFunction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec3;
 
 public class EntityBlockEgg extends Block {
-    private final BiFunction<World, BlockPos, ? extends LivingEntity> function;
+    private final BiFunction<Level, BlockPos, ? extends LivingEntity> function;
 
-    public EntityBlockEgg(Settings settings, BiFunction<World, BlockPos, ? extends LivingEntity> func) {
+    public EntityBlockEgg(Properties settings, BiFunction<Level, BlockPos, ? extends LivingEntity> func) {
         super(settings);
         this.function = func;
     }
 
-    public EntityBlockEgg(Settings settings, EntityType<? extends LivingEntity> type) {
+    public EntityBlockEgg(Properties settings, EntityType<? extends LivingEntity> type) {
         super(settings);
         this.function = (world, pos) -> {
             LivingEntity entity = type.create(world);
-            if (entity!=null) entity.setPosition(Vec3d.of(pos));
+            if (entity!=null) entity.setPos(Vec3.atLowerCornerOf(pos));
             return entity;
         };
     }
 
     @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!player.isCreative()) {
-            world.spawnEntity(function.apply(world, pos));
+            world.addFreshEntity(function.apply(world, pos));
         }
-        world.emitGameEvent(player, GameEvent.BLOCK_DESTROY, pos);
+        world.gameEvent(player, GameEvent.BLOCK_DESTROY, pos);
     }
 }

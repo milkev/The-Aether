@@ -5,44 +5,44 @@ import com.aether.entities.AetherEntityExtensions;
 import com.aether.entities.block.FloatingBlockEntity;
 import com.aether.entities.block.FloatingBlockStructure;
 import com.aether.items.utils.AetherTiers;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.World;
-import net.minecraft.world.explosion.Explosion;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.Vec3;
 
 public interface IAetherTool {
-    float getMiningSpeedMultiplier(ItemStack item, BlockState state);
+    float getDestroySpeed(ItemStack item, BlockState state);
 
-    AetherTiers getTier();
+    AetherTiers getItemMaterial();
 
     Logger log = LogManager.getLogger(IAetherTool.class);
 
-    default boolean eligibleToFloat(ItemUsageContext context) {
-        BlockPos pos = context.getBlockPos();
-        World world = context.getWorld();
+    default boolean eligibleToFloat(UseOnContext context) {
+        BlockPos pos = context.getClickedPos();
+        Level world = context.getLevel();
         BlockState state = world.getBlockState(pos);
-        ItemStack heldItem = context.getStack();
+        ItemStack heldItem = context.getItemInHand();
         Supplier<Boolean> dropState = () -> {
-            int distFromTop = world.getTopY() - pos.getY();
+            int distFromTop = world.getMaxBuildHeight() - pos.getY();
             boolean isFastFloater = (
                     state.getBlock() == AetherBlocks.GRAVITITE_ORE ||
                     state.getBlock() == AetherBlocks.GRAVITITE_LEVITATOR ||
@@ -50,12 +50,12 @@ public interface IAetherTool {
             return !isFastFloater && distFromTop <= 50;
         };
 
-        return (!state.isToolRequired() || heldItem.isSuitableFor(state))
-                && FloatingBlockEntity.canMakeBlock(dropState, world.getBlockState(pos.down()),world.getBlockState(pos.up()));
+        return (!state.requiresCorrectToolForDrops() || heldItem.isCorrectToolForDrops(state))
+                && FloatingBlockEntity.canMakeBlock(dropState, world.getBlockState(pos.below()),world.getBlockState(pos.above()));
     }
 
-    default ActionResult useOnBlock(ItemUsageContext context, @Nullable ActionResult defaultResult) {
-        if (this.getTier() == AetherTiers.GRAVITITE) {
+    default InteractionResult useOnBlock(UseOnContext context, @Nullable InteractionResult defaultResult) {
+        if (this.getItemMaterial() == AetherTiers.GRAVITITE) {
             if (eligibleToFloat(context)) {
                 return createFloatingBlockEntity(context);
             }
@@ -63,29 +63,29 @@ public interface IAetherTool {
         return defaultResult != null ? defaultResult : defaultItemUse(context);
     }
 
-    private ActionResult createFloatingBlockEntity(ItemUsageContext context){
-        BlockPos pos = context.getBlockPos();
-        World world = context.getWorld();
+    private InteractionResult createFloatingBlockEntity(UseOnContext context){
+        BlockPos pos = context.getClickedPos();
+        Level world = context.getLevel();
         BlockState state = world.getBlockState(pos);
 
-        if (world.getBlockEntity(pos) != null || state.getHardness(world, pos) == -1.0F) {
-            return ActionResult.FAIL;
+        if (world.getBlockEntity(pos) != null || state.getDestroySpeed(world, pos) == -1.0F) {
+            return InteractionResult.FAIL;
         }
         if (state.getBlock() == Blocks.FIRE || state.getBlock() == Blocks.SOUL_FIRE) {
-            world.breakBlock(pos, false);
-            return ActionResult.SUCCESS;
+            world.destroyBlock(pos, false);
+            return InteractionResult.SUCCESS;
         }
 
-        if (!world.isClient()) {
-            if(state.getProperties().contains(Properties.DOUBLE_BLOCK_HALF)){ // doors and tall grass
-                if(state.get(Properties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER){
-                    pos = pos.down();
+        if (!world.isClientSide()) {
+            if(state.getProperties().contains(BlockStateProperties.DOUBLE_BLOCK_HALF)){ // doors and tall grass
+                if(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER){
+                    pos = pos.below();
                     state = world.getBlockState(pos);
                 }
-                BlockState upperState = world.getBlockState(pos.up());
+                BlockState upperState = world.getBlockState(pos.above());
                 FloatingBlockEntity upper = new FloatingBlockEntity(world, pos.getX() + 0.5, pos.getY()+1, pos.getZ() + 0.5, upperState);
                 FloatingBlockEntity lower = new FloatingBlockEntity(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, state);
-                FloatingBlockStructure structure = new FloatingBlockStructure(lower, upper, Vec3i.ZERO.up());
+                FloatingBlockStructure structure = new FloatingBlockStructure(lower, upper, Vec3i.ZERO.above());
                 structure.spawn(world);
             } else { // everything else
                 FloatingBlockEntity entity = new FloatingBlockEntity(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, state);
@@ -95,35 +95,35 @@ public interface IAetherTool {
                     entity.setOnEndFloating((impact, landed) -> {
                         System.out.println("boom " + impact);
                         if (impact >= 0.8) {
-                            BlockPos landingPos = entity.getBlockPos();
+                            BlockPos landingPos = entity.blockPosition();
                             System.out.println("yea");
-                            world.breakBlock(landingPos, false);
-                            world.createExplosion(entity, landingPos.getX(), landingPos.getY(), landingPos.getZ(), (float) MathHelper.clamp(impact*5.5, 0, 10), Explosion.DestructionType.BREAK);
+                            world.destroyBlock(landingPos, false);
+                            world.explode(entity, landingPos.getX(), landingPos.getY(), landingPos.getZ(), (float) Mth.clamp(impact*5.5, 0, 10), Explosion.BlockInteraction.BREAK);
                         }
                     });
                 }
                 if (state.getBlock() == Blocks.LIGHTNING_ROD){
                     entity.setOnEndFloating((impact, landed) -> {
                         if (world.isThundering() && landed && impact >= 1.1){
-                            LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
-                            lightning.setPosition(Vec3d.ofCenter(entity.getBlockPos()));
-                            world.spawnEntity(lightning);
+                            LightningBolt lightning = new LightningBolt(EntityType.LIGHTNING_BOLT, world);
+                            lightning.setPos(Vec3.atCenterOf(entity.blockPosition()));
+                            world.addFreshEntity(lightning);
                         }
                     });
                 }
-                world.spawnEntity(entity);
+                world.addFreshEntity(entity);
             }
         }
 
         if (context.getPlayer() != null && !context.getPlayer().isCreative()) {
-            context.getStack().damage(4, context.getPlayer(), (p) -> p.sendToolBreakStatus(context.getHand()));
+            context.getItemInHand().hurtAndBreak(4, context.getPlayer(), (p) -> p.broadcastBreakEvent(context.getHand()));
         }
 
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     default float calculateIncrease(ItemStack tool) {
-        int current = tool.getDamage();
+        int current = tool.getDamageValue();
         int maxDamage = tool.getMaxDamage();
 
         if (maxDamage - 50 <= current) {
@@ -139,15 +139,15 @@ public interface IAetherTool {
         }
     }
 
-    default ActionResult useOnEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand){
-        if(this.getTier() == AetherTiers.GRAVITITE){
+    default InteractionResult useOnEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand){
+        if(this.getItemMaterial() == AetherTiers.GRAVITITE){
             ((AetherEntityExtensions)entity).setFlipped();
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
-    default ActionResult defaultItemUse(ItemUsageContext context) {
-        return ActionResult.SUCCESS;
+    default InteractionResult defaultItemUse(UseOnContext context) {
+        return InteractionResult.SUCCESS;
     }
 }

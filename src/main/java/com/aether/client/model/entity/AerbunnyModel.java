@@ -5,11 +5,16 @@
 // Paste this class into your mod and generate all required imports
 package com.aether.client.model.entity;
 import com.aether.entities.passive.AerbunnyEntity;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.util.Mth;
 public class AerbunnyModel extends EntityModel<AerbunnyEntity> {
     private final ModelPart body;
     private final ModelPart fluff;
@@ -33,28 +38,28 @@ public class AerbunnyModel extends EntityModel<AerbunnyEntity> {
         this.fluff = root.getChild("fluff");
     }
 
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        ModelPartData modelPartData1 = modelPartData.addChild("body", ModelPartBuilder.create(), ModelTransform.pivot(0.0F,22.8889F,1.0F));
-        modelPartData.addChild("fluff", ModelPartBuilder.create().uv(0,0).cuboid(-4.0F, -3.5F, -3.5F, 8.0F, 7.0F, 7.0F), ModelTransform.pivot(0.0F,0F,0F));
-        modelPartData1.addChild("head", ModelPartBuilder.create().uv(18,26).cuboid(-2.0F, -1.5F, -3.0F, 4.0F, 3.0F, 3.0F).uv(0,0).cuboid(-2.0F, -5.5F, -2.0F, 1.0F, 4.0F, 1.0F).uv(0,0).cuboid(1.0F, -5.5F, -2.0F, 1.0F, 4.0F, 1.0F).uv(0,14).cuboid(-4.0F, -0.5F, -2.0F, 2.0F, 2.0F, 0.0F).uv(0,14).cuboid(2.0F, -0.5F, -2.0F, 2.0F, 2.0F, 0.0F, true), ModelTransform.pivot(0.0F, -2.3889F, -4.5F));
-        modelPartData1.addChild("left_front_leg", ModelPartBuilder.create().uv(0,21).cuboid(-1.0F, -1.0F, -2.25F, 2.0F, 1.0F, 3.0F), ModelTransform.pivot(-4.0F,1.1111F,-3.25F));
-        modelPartData1.addChild("right_front_leg", ModelPartBuilder.create().uv(0,21).cuboid(-1.0F, -1.0F, -2.5F, 2.0F, 1.0F, 3.0F), ModelTransform.pivot(4.0F,1.1111F,-3.0F));
-        modelPartData1.addChild("back_right_leg", ModelPartBuilder.create().uv(10,20).cuboid(-1.0F, 0.0F, -3.0F, 2.0F, 1.0F, 4.0F).uv(22,20).cuboid(-1.0F, -2.0F, -2.0F, 2.0F, 2.0F, 3.0F), ModelTransform.pivot(4.0F,0.1111F,2.5F));
-        modelPartData1.addChild("back_left_leg", ModelPartBuilder.create().uv(22,20).cuboid(-1.0F, -2.0F, -2.0F, 2.0F, 2.0F, 3.0F).uv(10,20).cuboid(-1.0F, 0.0F, -3.0F, 2.0F, 1.0F, 4.0F), ModelTransform.pivot(-4.0F,0.1111F,2.5F));
-        modelPartData1.addChild("tail", ModelPartBuilder.create().uv(0,25).cuboid(-2.0F, -2.0F, 0.0F, 4.0F, 4.0F, 3.0F), ModelTransform.pivot(0.0F,-2.8889F,2.5F));
-        return TexturedModelData.of(modelData,32,32);
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        PartDefinition modelPartData1 = modelPartData.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0.0F,22.8889F,1.0F));
+        modelPartData.addOrReplaceChild("fluff", CubeListBuilder.create().texOffs(0,0).addBox(-4.0F, -3.5F, -3.5F, 8.0F, 7.0F, 7.0F), PartPose.offset(0.0F,0F,0F));
+        modelPartData1.addOrReplaceChild("head", CubeListBuilder.create().texOffs(18,26).addBox(-2.0F, -1.5F, -3.0F, 4.0F, 3.0F, 3.0F).texOffs(0,0).addBox(-2.0F, -5.5F, -2.0F, 1.0F, 4.0F, 1.0F).texOffs(0,0).addBox(1.0F, -5.5F, -2.0F, 1.0F, 4.0F, 1.0F).texOffs(0,14).addBox(-4.0F, -0.5F, -2.0F, 2.0F, 2.0F, 0.0F).texOffs(0,14).addBox(2.0F, -0.5F, -2.0F, 2.0F, 2.0F, 0.0F, true), PartPose.offset(0.0F, -2.3889F, -4.5F));
+        modelPartData1.addOrReplaceChild("left_front_leg", CubeListBuilder.create().texOffs(0,21).addBox(-1.0F, -1.0F, -2.25F, 2.0F, 1.0F, 3.0F), PartPose.offset(-4.0F,1.1111F,-3.25F));
+        modelPartData1.addOrReplaceChild("right_front_leg", CubeListBuilder.create().texOffs(0,21).addBox(-1.0F, -1.0F, -2.5F, 2.0F, 1.0F, 3.0F), PartPose.offset(4.0F,1.1111F,-3.0F));
+        modelPartData1.addOrReplaceChild("back_right_leg", CubeListBuilder.create().texOffs(10,20).addBox(-1.0F, 0.0F, -3.0F, 2.0F, 1.0F, 4.0F).texOffs(22,20).addBox(-1.0F, -2.0F, -2.0F, 2.0F, 2.0F, 3.0F), PartPose.offset(4.0F,0.1111F,2.5F));
+        modelPartData1.addOrReplaceChild("back_left_leg", CubeListBuilder.create().texOffs(22,20).addBox(-1.0F, -2.0F, -2.0F, 2.0F, 2.0F, 3.0F).texOffs(10,20).addBox(-1.0F, 0.0F, -3.0F, 2.0F, 1.0F, 4.0F), PartPose.offset(-4.0F,0.1111F,2.5F));
+        modelPartData1.addOrReplaceChild("tail", CubeListBuilder.create().texOffs(0,25).addBox(-2.0F, -2.0F, 0.0F, 4.0F, 4.0F, 3.0F), PartPose.offset(0.0F,-2.8889F,2.5F));
+        return LayerDefinition.create(modelData,32,32);
     }
 
     @Override
-    public void setAngles(AerbunnyEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        head.pitch = headPitch * 0.017453F;
-        head.yaw = netHeadYaw * 0.017453292F;
-        back_right_leg.pitch = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
-        back_left_leg.pitch = MathHelper.cos(limbSwing * 0.6662F + 3.1415927F) * 1.4F * limbSwingAmount;
-        right_front_leg.pitch = MathHelper.cos(limbSwing * 0.6662F + 3.1415927F) * 1.4F * limbSwingAmount;
-        left_front_leg.pitch = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+    public void setupAnim(AerbunnyEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+        head.xRot = headPitch * 0.017453F;
+        head.yRot = netHeadYaw * 0.017453292F;
+        back_right_leg.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+        back_left_leg.xRot = Mth.cos(limbSwing * 0.6662F + 3.1415927F) * 1.4F * limbSwingAmount;
+        right_front_leg.xRot = Mth.cos(limbSwing * 0.6662F + 3.1415927F) * 1.4F * limbSwingAmount;
+        left_front_leg.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
         float targetFloof = entity.getPuffiness() / 2F;
         if (entity.floof < targetFloof) {
             entity.floof += 0.025F;
@@ -68,7 +73,7 @@ public class AerbunnyModel extends EntityModel<AerbunnyEntity> {
     }
 
     @Override
-    public void render(MatrixStack matrixStack, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void renderToBuffer(PoseStack matrixStack, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         body.render(matrixStack, buffer, packedLight, packedOverlay);
         matrixStack.translate(0, 1.28, 0);
         matrixStack.scale(fluff_scale, fluff_scale, fluff_scale);

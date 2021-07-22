@@ -1,18 +1,17 @@
 package com.aether.mixin.screen;
 
 import com.aether.blocks.AetherBlocks;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.screen.EnchantmentScreenHandler;
+import net.minecraft.world.inventory.EnchantmentMenu;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(EnchantmentScreenHandler.class)
+@Mixin(EnchantmentMenu.class)
 public abstract class EnchantmentScreenHandlerMixin {
-    @Redirect(method = "method_17411", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;isOf(Lnet/minecraft/block/Block;)Z"))
+    @Redirect(method = "slotsChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
     public boolean isThisOrSkyrootBookshelf(BlockState target, Block block) {
-        return target.isOf(block) || target.isOf(AetherBlocks.SKYROOT_BOOKSHELF);
+        return target.is(block) || target.is(AetherBlocks.SKYROOT_BOOKSHELF);
     }
 }

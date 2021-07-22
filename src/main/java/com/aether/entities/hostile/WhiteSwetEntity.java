@@ -3,19 +3,14 @@ package com.aether.entities.hostile;
 import com.aether.blocks.AetherBlocks;
 import com.aether.entities.AetherEntityTypes;
 import com.aether.items.AetherItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.world.World;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 
 public class WhiteSwetEntity extends TransformableSwetEntity{
 
-    public WhiteSwetEntity(World world){
+    public WhiteSwetEntity(Level world){
         super(AetherEntityTypes.WHITE_SWET, world);
         setSize(2, true);
     }
@@ -23,10 +18,10 @@ public class WhiteSwetEntity extends TransformableSwetEntity{
     @Override
     protected void onEntityCollision(Entity entity){
         if (getSize() > 1 && entity instanceof LivingEntity livingEntity) {
-            StatusEffectInstance[] effects = livingEntity.getStatusEffects().toArray(new StatusEffectInstance[0]);
-            for (StatusEffectInstance effect : effects) {
-                this.setStatusEffect(effect, livingEntity);
-                livingEntity.removeStatusEffect(effect.getEffectType());
+            MobEffectInstance[] effects = livingEntity.getActiveEffects().toArray(new MobEffectInstance[0]);
+            for (MobEffectInstance effect : effects) {
+                this.addEffect(effect, livingEntity);
+                livingEntity.removeEffect(effect.getEffect());
             }
         }
         super.onEntityCollision(entity);

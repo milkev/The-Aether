@@ -1,10 +1,9 @@
 package com.aether.entities.block;
 
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.World;
-
 import java.util.ArrayList;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 public class FloatingBlockStructure {
     private static ArrayList<FloatingBlockStructure> allStructures = new ArrayList<>(0);
@@ -21,14 +20,14 @@ public class FloatingBlockStructure {
         init();
     }
 
-    public void spawn(World world){
+    public void spawn(Level world){
         blockInfos.forEach(blockInfo -> {
             blockInfo.block.markPartOfStructure();
             if(!blockInfo.equals(blockInfos.get(0))){
                 blockInfo.block.dropItem = false;
             }
             blockInfo.block.floatTime = 0;
-            world.spawnEntity(blockInfo.block);
+            world.addFreshEntity(blockInfo.block);
         });
     }
 
@@ -47,9 +46,9 @@ public class FloatingBlockStructure {
 
     protected void alignToMaster(FloatingBlockInfoWrapper blockInfo){
         FloatingBlockInfoWrapper master = blockInfos.get(0);
-        Vec3d newPos = master.block.getPos().add(Vec3d.of(blockInfo.offset));
-        blockInfo.block.setPos(newPos.x, newPos.y, newPos.z);
-        blockInfo.block.setVelocity(master.block.getVelocity());
+        Vec3 newPos = master.block.position().add(Vec3.atLowerCornerOf(blockInfo.offset));
+        blockInfo.block.setPosRaw(newPos.x, newPos.y, newPos.z);
+        blockInfo.block.setDeltaMovement(master.block.getDeltaMovement());
         blockInfo.block.setDropping(master.block.isDropping());
     }
 
@@ -57,7 +56,7 @@ public class FloatingBlockStructure {
         for(FloatingBlockInfoWrapper blockInfo : blockInfos){
             alignToMaster(blockInfo);
             if (!blockInfo.equals(lander)) {
-                blockInfo.block.land((float) blockInfos.get(0).block.getVelocity().length());
+                blockInfo.block.land((float) blockInfos.get(0).block.getDeltaMovement().length());
             }
         }
         allStructures.remove(this);

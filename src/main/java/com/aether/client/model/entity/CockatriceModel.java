@@ -1,11 +1,16 @@
 package com.aether.client.model.entity;
 
 import com.aether.entities.hostile.CockatriceEntity;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.util.Mth;
 
 public class CockatriceModel extends EntityModel<CockatriceEntity> {
 
@@ -29,26 +34,26 @@ public class CockatriceModel extends EntityModel<CockatriceEntity> {
         this.feather3 = root.getChild("feather3");
     }
 
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        modelPartData.addChild("head", ModelPartBuilder.create().uv(0, 13).cuboid(-2.0F, -4.0F, -6.0F, 4, 4, 8), ModelTransform.pivot(0.0F, (float) (-8 + 16), -4.0F));
-        modelPartData.addChild("jaw", ModelPartBuilder.create().uv(24, 13).cuboid(-2.0F, -1.0F, -6.0F, 4, 1, 8), ModelTransform.pivot(0.0F, (float) (-8 + 16), -4.0F));
-        modelPartData.addChild("body", ModelPartBuilder.create().uv(0, 0).cuboid(-3.0F, -3.0F, 0.0F, 6, 8, 5), ModelTransform.pivot(0.0F, (float) (16), 0.0F));
-        modelPartData.addChild("legs", ModelPartBuilder.create().uv(22, 0).cuboid(-1.0F, -1.0F, -1.0F, 2, 9, 2), ModelTransform.pivot(-2.0F, (float) (16), 1.0F));
-        modelPartData.addChild("legs2", ModelPartBuilder.create().uv(22, 0).cuboid(-1.0F, -1.0F, -1.0F, 2, 9, 2), ModelTransform.pivot(2.0F, (float) (16), 1.0F));
-        modelPartData.addChild("wings", ModelPartBuilder.create().uv(52, 0).cuboid(-1.0F, -0.0F, -1.0F, 1, 8, 4), ModelTransform.pivot(-3.0F, (float) (16), 2.0F));
-        modelPartData.addChild("wings2", ModelPartBuilder.create().uv(52, 0).cuboid(0.0F, -0.0F, -1.0F, 1, 8, 4), ModelTransform.pivot(3.0F, (float) (-4 + 16), 0.0F));
-        modelPartData.addChild("neck", ModelPartBuilder.create().uv(44, 0).cuboid(-1.0F, -6.0F, -1.0F, 2, 6, 2), ModelTransform.pivot(0.0F, (float) (-2 + 16), -4.0F));
-        modelPartData.addChild("feather1", ModelPartBuilder.create().uv(30, 0).cuboid(-1.0F, -5.0F, 5.0F, 2, 1, 5), ModelTransform.pivot(0.0F, (float) (1 + 16) + 0.5F, 1.0F));
-        modelPartData.addChild("feather2", ModelPartBuilder.create().uv(30, 0).cuboid(-1.0F, -5.0F, 5.0F, 2, 1, 5), ModelTransform.pivot(0.0F, (float) (1 + 16) + 0.5F, 1.0F));
-        modelPartData.addChild("feather3", ModelPartBuilder.create().uv(30, 0).cuboid(-1.0F, -5.0F, 5.0F, 2, 1, 5), ModelTransform.pivot(0.0F, (float) (1 + 16) + 0.5F, 1.0F));
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        modelPartData.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 13).addBox(-2.0F, -4.0F, -6.0F, 4, 4, 8), PartPose.offset(0.0F, (float) (-8 + 16), -4.0F));
+        modelPartData.addOrReplaceChild("jaw", CubeListBuilder.create().texOffs(24, 13).addBox(-2.0F, -1.0F, -6.0F, 4, 1, 8), PartPose.offset(0.0F, (float) (-8 + 16), -4.0F));
+        modelPartData.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-3.0F, -3.0F, 0.0F, 6, 8, 5), PartPose.offset(0.0F, (float) (16), 0.0F));
+        modelPartData.addOrReplaceChild("legs", CubeListBuilder.create().texOffs(22, 0).addBox(-1.0F, -1.0F, -1.0F, 2, 9, 2), PartPose.offset(-2.0F, (float) (16), 1.0F));
+        modelPartData.addOrReplaceChild("legs2", CubeListBuilder.create().texOffs(22, 0).addBox(-1.0F, -1.0F, -1.0F, 2, 9, 2), PartPose.offset(2.0F, (float) (16), 1.0F));
+        modelPartData.addOrReplaceChild("wings", CubeListBuilder.create().texOffs(52, 0).addBox(-1.0F, -0.0F, -1.0F, 1, 8, 4), PartPose.offset(-3.0F, (float) (16), 2.0F));
+        modelPartData.addOrReplaceChild("wings2", CubeListBuilder.create().texOffs(52, 0).addBox(0.0F, -0.0F, -1.0F, 1, 8, 4), PartPose.offset(3.0F, (float) (-4 + 16), 0.0F));
+        modelPartData.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(44, 0).addBox(-1.0F, -6.0F, -1.0F, 2, 6, 2), PartPose.offset(0.0F, (float) (-2 + 16), -4.0F));
+        modelPartData.addOrReplaceChild("feather1", CubeListBuilder.create().texOffs(30, 0).addBox(-1.0F, -5.0F, 5.0F, 2, 1, 5), PartPose.offset(0.0F, (float) (1 + 16) + 0.5F, 1.0F));
+        modelPartData.addOrReplaceChild("feather2", CubeListBuilder.create().texOffs(30, 0).addBox(-1.0F, -5.0F, 5.0F, 2, 1, 5), PartPose.offset(0.0F, (float) (1 + 16) + 0.5F, 1.0F));
+        modelPartData.addOrReplaceChild("feather3", CubeListBuilder.create().texOffs(30, 0).addBox(-1.0F, -5.0F, 5.0F, 2, 1, 5), PartPose.offset(0.0F, (float) (1 + 16) + 0.5F, 1.0F));
 
-        return TexturedModelData.of(modelData,64,64);
+        return LayerDefinition.create(modelData,64,64);
     }
 
     @Override
-    public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
+    public void renderToBuffer(PoseStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
         this.head.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
         this.jaw.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
         this.body.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
@@ -63,45 +68,45 @@ public class CockatriceModel extends EntityModel<CockatriceEntity> {
     }
 
     @Override
-    public void setAngles(CockatriceEntity cockatrice, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        this.head.pitch = headPitch / 57.29578F;
-        this.head.yaw = netHeadYaw / 57.29578F;
-        this.jaw.pitch = this.head.pitch;
-        this.jaw.yaw = this.head.yaw;
-        this.body.pitch = 1.570796F;
-        this.legs.pitch = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
-        this.legs2.pitch = MathHelper.cos((float) (limbSwing * 0.6662F + Math.PI)) * 1.4F * limbSwingAmount;
+    public void setupAnim(CockatriceEntity cockatrice, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+        this.head.xRot = headPitch / 57.29578F;
+        this.head.yRot = netHeadYaw / 57.29578F;
+        this.jaw.xRot = this.head.xRot;
+        this.jaw.yRot = this.head.yRot;
+        this.body.xRot = 1.570796F;
+        this.legs.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+        this.legs2.xRot = Mth.cos((float) (limbSwing * 0.6662F + Math.PI)) * 1.4F * limbSwingAmount;
 
         if (ageInTicks > 0.001F) {
-            this.wings.pivotZ = -1F;
-            this.wings2.pivotZ = -1F;
-            this.wings.pivotY = 12F;
-            this.wings2.pivotY = 12F;
-            this.wings.pitch = 0.0F;
-            this.wings2.pitch = 0.0F;
-            this.wings.roll = ageInTicks;
-            this.wings2.roll = -ageInTicks;
-            this.legs.pitch = 0.6F;
-            this.legs2.pitch = 0.6F;
+            this.wings.z = -1F;
+            this.wings2.z = -1F;
+            this.wings.y = 12F;
+            this.wings2.y = 12F;
+            this.wings.xRot = 0.0F;
+            this.wings2.xRot = 0.0F;
+            this.wings.zRot = ageInTicks;
+            this.wings2.zRot = -ageInTicks;
+            this.legs.xRot = 0.6F;
+            this.legs2.xRot = 0.6F;
         } else {
-            this.wings.pivotZ = -3F;
-            this.wings2.pivotZ = -3F;
-            this.wings.pivotY = 14F;
-            this.wings2.pivotY = 14F;
-            this.wings.pitch = (float) (Math.PI / 2.0F);
-            this.wings2.pitch = (float) (Math.PI / 2.0F);
-            this.wings.roll = 0.0F;
-            this.wings2.roll = 0.0F;
+            this.wings.z = -3F;
+            this.wings2.z = -3F;
+            this.wings.y = 14F;
+            this.wings2.y = 14F;
+            this.wings.xRot = (float) (Math.PI / 2.0F);
+            this.wings2.xRot = (float) (Math.PI / 2.0F);
+            this.wings.zRot = 0.0F;
+            this.wings2.zRot = 0.0F;
         }
 
-        this.feather1.yaw = -0.375F;
-        this.feather2.yaw = 0.0F;
-        this.feather3.yaw = 0.375F;
-        this.feather1.pitch = 0.25F;
-        this.feather2.pitch = 0.25F;
-        this.feather3.pitch = 0.25F;
-        this.neck.pitch = 0.0F;
-        this.neck.yaw = head.yaw;
-        this.jaw.pitch += 0.35F;
+        this.feather1.yRot = -0.375F;
+        this.feather2.yRot = 0.0F;
+        this.feather3.yRot = 0.375F;
+        this.feather1.xRot = 0.25F;
+        this.feather2.xRot = 0.25F;
+        this.feather3.xRot = 0.25F;
+        this.neck.xRot = 0.0F;
+        this.neck.yRot = head.yRot;
+        this.jaw.xRot += 0.35F;
     }
 }

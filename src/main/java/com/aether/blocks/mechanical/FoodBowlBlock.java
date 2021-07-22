@@ -1,71 +1,75 @@
 package com.aether.blocks.mechanical;
 
 import com.aether.blocks.blockentity.FoodBowlBlockEntity;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class FoodBowlBlock extends BlockWithEntity {
+public class FoodBowlBlock extends BaseEntityBlock {
 
-    public static final EnumProperty<Direction.Axis> AXIS = Properties.HORIZONTAL_AXIS;
-    public static final BooleanProperty FULL = BooleanProperty.of("full");
-    private final VoxelShape shapeX = Block.createCuboidShape(0, 0, 1, 16, 8, 15);
-    private final VoxelShape shapeZ = Block.createCuboidShape(1, 0, 0, 15, 8, 16);
+    public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
+    public static final BooleanProperty FULL = BooleanProperty.create("full");
+    private final VoxelShape shapeX = Block.box(0, 0, 1, 16, 8, 15);
+    private final VoxelShape shapeZ = Block.box(1, 0, 0, 15, 8, 16);
 
-    public FoodBowlBlock(Settings settings) {
+    public FoodBowlBlock(Properties settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(AXIS, Direction.Axis.Z).with(FULL, false));
+        registerDefaultState(defaultBlockState().setValue(AXIS, Direction.Axis.Z).setValue(FULL, false));
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if(!player.isSneaking() && world.getBlockEntity(pos) instanceof FoodBowlBlockEntity foodBowl) {
-            return ActionResult.success(foodBowl.handleUse(player, hand, player.getStackInHand(hand)) && world.isClient());
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if(!player.isShiftKeyDown() && world.getBlockEntity(pos) instanceof FoodBowlBlockEntity foodBowl) {
+            return InteractionResult.sidedSuccess(foodBowl.handleUse(player, hand, player.getItemInHand(hand)) && world.isClientSide());
         }
-        return super.onUse(state, world, pos, player, hand, hit);
+        return super.use(state, world, pos, player, hand, hit);
     }
 
     @Override
-    public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
-        return getDefaultState().with(AXIS, ctx.getPlayerFacing().getAxis());
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return defaultBlockState().setValue(AXIS, ctx.getHorizontalDirection().getAxis());
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return switch(state.get(AXIS)) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return switch(state.getValue(AXIS)) {
             case X -> shapeX;
             case Z -> shapeZ;
-            default -> throw new IllegalStateException("Unexpected value: " + state.get(AXIS));
+            default -> throw new IllegalStateException("Unexpected value: " + state.getValue(AXIS));
         };
     }
 
     @Override
-    public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new FoodBowlBlockEntity(pos, state);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        super.appendProperties(builder);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(AXIS, FULL);
     }
 }

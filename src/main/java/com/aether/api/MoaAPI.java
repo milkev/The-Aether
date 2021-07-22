@@ -4,29 +4,29 @@ import com.aether.Aether;
 import com.aether.component.MoaGenes;
 import com.aether.world.dimension.AetherDimension;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.mojang.datafixers.util.Function4;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.particle.ParticleType;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import java.util.*;
 import java.util.function.BiPredicate;
 
 @SuppressWarnings("unused")
 public class MoaAPI {
 
-    public static final Identifier FALLBACK_ID = Aether.locate("fallback");
+    public static final ResourceLocation FALLBACK_ID = Aether.locate("fallback");
     public static final Race FALLBACK_MOA = new Race(FALLBACK_ID, Aether.locate("textures/entity/moas/highlands/blue.png"), MoaAttributes.GROUND_SPEED, SpawnStatWeighting.SPEED, false, false, ParticleTypes.ENCHANT);
 
-    private static final Object2ObjectOpenHashMap<Identifier, Race> MOA_RACE_REGISTRY = new Object2ObjectOpenHashMap<>();
-    private static final Object2ObjectOpenHashMap<RegistryKey<Biome>, SpawnBucket> MOA_SPAWN_REGISTRY = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<ResourceLocation, Race> MOA_RACE_REGISTRY = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<ResourceKey<Biome>, SpawnBucket> MOA_SPAWN_REGISTRY = new Object2ObjectOpenHashMap<>();
     private static final List<MatingEntry> MOA_BREEDING_REGISTRY = new ArrayList<>();
 
     public static void init() {
@@ -52,9 +52,9 @@ public class MoaAPI {
         final Race moonstruck = registerForBreedingPredicate("moonstruck", mintgrass, strawberryWistar, MoaAttributes.GLIDING_SPEED, SpawnStatWeighting.SPEED, true, true, ParticleTypes.END_ROD, "textures/entity/moas/highlands/moonstruck.png", ((moaGenes, moaGenes2, world, pos) -> world.isNight() && world.getRandom().nextFloat() <= 0.1F));
     }
 
-    public static Race registerForBiome(String name, RegistryKey<Biome> spawnBiome, MoaAttributes affinity, SpawnStatWeighting spawnStats, int weight, boolean glowing, boolean legendary, ParticleType<?> particles, String texturePath) {
-        Identifier raceId = Aether.locate(name);
-        Identifier texture = Aether.locate(texturePath);
+    public static Race registerForBiome(String name, ResourceKey<Biome> spawnBiome, MoaAttributes affinity, SpawnStatWeighting spawnStats, int weight, boolean glowing, boolean legendary, ParticleType<?> particles, String texturePath) {
+        ResourceLocation raceId = Aether.locate(name);
+        ResourceLocation texture = Aether.locate(texturePath);
 
         final Race race = new Race(raceId, texture, affinity, spawnStats, glowing, legendary, particles);
         MOA_RACE_REGISTRY.put(raceId, race);
@@ -66,9 +66,9 @@ public class MoaAPI {
         return registerForBreedingPredicate(name, parentA, parentB, affinity, spawnStats, glowing, legendary, particles, texturePath, createChanceCheck(chance));
     }
 
-    public static Race registerForBreedingPredicate(String name, Race parentA, Race parentB, MoaAttributes affinity, SpawnStatWeighting spawnStats, boolean glowing, boolean legendary, ParticleType<?> particles, String texturePath, Function4<MoaGenes, MoaGenes, World, BlockPos, Boolean> breedingPredicate) {
-        Identifier raceId = Aether.locate(name);
-        Identifier texture = Aether.locate(texturePath);
+    public static Race registerForBreedingPredicate(String name, Race parentA, Race parentB, MoaAttributes affinity, SpawnStatWeighting spawnStats, boolean glowing, boolean legendary, ParticleType<?> particles, String texturePath, Function4<MoaGenes, MoaGenes, Level, BlockPos, Boolean> breedingPredicate) {
+        ResourceLocation raceId = Aether.locate(name);
+        ResourceLocation texture = Aether.locate(texturePath);
 
         final Race race = new Race(raceId, texture, affinity, spawnStats, glowing, legendary, particles);
         MOA_RACE_REGISTRY.put(raceId, race);
@@ -76,7 +76,7 @@ public class MoaAPI {
         return race;
     }
 
-    public static void appendBiome(RegistryKey<Biome> spawnBiome, Identifier raceId, int weight) {
+    public static void appendBiome(ResourceKey<Biome> spawnBiome, ResourceLocation raceId, int weight) {
         MOA_SPAWN_REGISTRY.computeIfAbsent(spawnBiome, key -> new SpawnBucket()).put(raceId, weight);
     }
 
@@ -84,27 +84,27 @@ public class MoaAPI {
         MOA_BREEDING_REGISTRY.add(entry);
     }
 
-    public static Race getRace(Identifier raceId) {
+    public static Race getRace(ResourceLocation raceId) {
         return MOA_RACE_REGISTRY.getOrDefault(raceId, FALLBACK_MOA);
     }
 
-    public static Iterator<Identifier> getRegisteredRaces() {
+    public static Iterator<ResourceLocation> getRegisteredRaces() {
         return MOA_RACE_REGISTRY.keySet().iterator();
     }
 
-    public static Optional<SpawnBucket> getSpawnBucket(RegistryKey<Biome> biome) {
+    public static Optional<SpawnBucket> getSpawnBucket(ResourceKey<Biome> biome) {
         return Optional.ofNullable(MOA_SPAWN_REGISTRY.get(biome));
     }
 
-    public static Race getMoaForBiome(RegistryKey<Biome> biome, Random random) {
-        Optional<Identifier> raceOptional =
+    public static Race getMoaForBiome(ResourceKey<Biome> biome, Random random) {
+        Optional<ResourceLocation> raceOptional =
                 Optional.ofNullable(getSpawnBucket(biome)
                 .map(bucket -> bucket.get(random))
                 .orElse(MOA_SPAWN_REGISTRY.get(AetherDimension.HIGHLANDS_PLAINS).get(random)));
         return raceOptional.map(MoaAPI::getRace).orElse(FALLBACK_MOA);
     }
 
-    public static Race getMoaForBreeding(MoaGenes parentA, MoaGenes parentB, World world, BlockPos pos) {
+    public static Race getMoaForBreeding(MoaGenes parentA, MoaGenes parentB, Level world, BlockPos pos) {
         var childRace =
                 MOA_BREEDING_REGISTRY.stream()
                 .filter(matingEntry -> matingEntry.identityCheck.test(parentA.getRace(), parentB.getRace()) && matingEntry.additionalChecks.apply(parentA, parentB, world, pos))
@@ -113,14 +113,14 @@ public class MoaAPI {
     }
 
     @Environment(EnvType.CLIENT)
-    public static String formatForTranslation(Identifier raceId) {
+    public static String formatForTranslation(ResourceLocation raceId) {
         return "moa.race." + raceId.getPath();
     }
 
-    public static record Race(Identifier id, Identifier texturePath, MoaAttributes defaultAffinity, SpawnStatWeighting statWeighting, boolean glowing, boolean legendary, ParticleType<?> particles) {
+    public static record Race(ResourceLocation id, ResourceLocation texturePath, MoaAttributes defaultAffinity, SpawnStatWeighting statWeighting, boolean glowing, boolean legendary, ParticleType<?> particles) {
     }
 
-    private static record SpawnBucketEntry(Identifier id, int weight) {
+    private static record SpawnBucketEntry(ResourceLocation id, int weight) {
         public boolean test(Random random, int whole) {
             return random.nextInt(whole) < weight;
         }
@@ -132,7 +132,7 @@ public class MoaAPI {
         private SpawnBucketEntry heaviest = new SpawnBucketEntry(FALLBACK_ID, 0);
         private int totalWeight;
 
-        public void put(Identifier raceId, int weight) {
+        public void put(ResourceLocation raceId, int weight) {
 
             if(weight < 1) {
                 throw new IllegalArgumentException(raceId.toString() + " has an invalid weight, must be 1 or higher!");
@@ -148,7 +148,7 @@ public class MoaAPI {
             totalWeight += weight;
         }
 
-        public Identifier get(Random random) {
+        public ResourceLocation get(Random random) {
             if(entries.size() == 1) {
                 return entries.get(0).id;
             }
@@ -159,7 +159,7 @@ public class MoaAPI {
 
     }
 
-    private static record MatingEntry(Identifier race, BiPredicate<Race, Race> identityCheck, Function4<MoaGenes, MoaGenes, World, BlockPos, Boolean> additionalChecks) {
+    private static record MatingEntry(ResourceLocation race, BiPredicate<Race, Race> identityCheck, Function4<MoaGenes, MoaGenes, Level, BlockPos, Boolean> additionalChecks) {
         public Race get() {
             return getRace(race);
         }
@@ -169,7 +169,7 @@ public class MoaAPI {
         return (parentA, parentB) -> (raceA == parentA && raceB == parentB) || (raceB == parentA && raceA == parentB);
     }
 
-    public static Function4<MoaGenes, MoaGenes, World, BlockPos, Boolean> createChanceCheck(float chance) {
+    public static Function4<MoaGenes, MoaGenes, Level, BlockPos, Boolean> createChanceCheck(float chance) {
         return (parentA, parentB, world, pos) -> world.getRandom().nextFloat() < chance;
     }
 
@@ -188,7 +188,7 @@ public class MoaAPI {
         public final ImmutableMap<MoaAttributes, SpawnStatData> data;
 
         SpawnStatWeighting(float baseGroundSpeed, float groundSpeedVariance, float baseGlidingSpeed, float glidingSpeedVariance, float baseGlidingDecay, float glidingDecayVariance, float baseJumpStrength, float jumpStrengthVariance, float baseMaxHealth, float maxHealthVariance) {
-            var builder = ImmutableMap.<MoaAttributes, SpawnStatData>builder();
+            Builder builder = ImmutableMap.<MoaAttributes, SpawnStatData>builder();
             builder.put(MoaAttributes.GROUND_SPEED, new SpawnStatData(baseGroundSpeed, groundSpeedVariance));
             builder.put(MoaAttributes.GLIDING_SPEED, new SpawnStatData(baseGlidingSpeed, glidingSpeedVariance));
             builder.put(MoaAttributes.GLIDING_DECAY, new SpawnStatData(baseGlidingDecay, glidingDecayVariance));

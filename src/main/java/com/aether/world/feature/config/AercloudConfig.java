@@ -1,8 +1,7 @@
 package com.aether.world.feature.config;
 
-import net.minecraft.block.BlockState;
-
 import java.util.Optional;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class AercloudConfig extends DynamicConfiguration {
     public final boolean isFlat;

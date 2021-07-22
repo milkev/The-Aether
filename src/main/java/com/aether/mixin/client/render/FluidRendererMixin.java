@@ -1,15 +1,15 @@
 package com.aether.mixin.client.render;
 
 import com.aether.world.dimension.AetherDimension;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.block.FluidRenderer;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.LiquidBlockRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,19 +17,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(FluidRenderer.class)
+@Mixin(LiquidBlockRenderer.class)
 @Environment(EnvType.CLIENT)
 public class FluidRendererMixin {
 
     @Unique
     private float fadeAlpha;
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private void render(BlockRenderView world, BlockPos pos, VertexConsumer builder, FluidState state, CallbackInfoReturnable<Boolean> info) {
+    @Inject(method = "tesselate", at = @At("HEAD"))
+    private void render(BlockAndTintGetter world, BlockPos pos, VertexConsumer builder, FluidState state, CallbackInfoReturnable<Boolean> info) {
         fadeAlpha = 1F;
-        if (state.getFluid().matchesType(Fluids.WATER)) {
-            if (MinecraftClient.getInstance().world.getRegistryKey() == AetherDimension.AETHER_WORLD_KEY) {
-                fadeAlpha = Math.min((pos.getY() - world.getBottomY()) / 32F, 1);
+        if (state.getType().isSame(Fluids.WATER)) {
+            if (Minecraft.getInstance().level.dimension() == AetherDimension.AETHER_WORLD_KEY) {
+                fadeAlpha = Math.min((pos.getY() - world.getMinBuildHeight()) / 32F, 1);
             }
 
         }
@@ -39,7 +39,7 @@ public class FluidRendererMixin {
             method = "vertex",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/VertexConsumer;color(FFFF)Lnet/minecraft/client/render/VertexConsumer;"
+                    target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;color(FFFF)Lcom/mojang/blaze3d/vertex/VertexConsumer;"
             ),
             index = 3
     )

@@ -1,19 +1,19 @@
 package com.aether.mixin.server;
 
 import com.aether.entities.AetherEntityExtensions;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public abstract class ServerPlayerEntityMixin extends Entity implements AetherEntityExtensions {
-    public ServerPlayerEntityMixin(EntityType<?> type, World world) {
+    public ServerPlayerEntityMixin(EntityType<?> type, Level world) {
         super(type, world);
     }
     
@@ -29,9 +29,9 @@ public abstract class ServerPlayerEntityMixin extends Entity implements AetherEn
                 flipped = false;
                 this.fallDistance = 0;
             }
-            if(!this.hasNoGravity()) {
-                Vec3d antiGravity = new Vec3d(0, 0.12D, 0);
-                this.setVelocity(this.getVelocity().add(antiGravity));
+            if(!this.isNoGravity()) {
+                Vec3 antiGravity = new Vec3(0, 0.12D, 0);
+                this.setDeltaMovement(this.getDeltaMovement().add(antiGravity));
             }
         }
     }

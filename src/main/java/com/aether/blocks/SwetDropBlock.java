@@ -1,39 +1,38 @@
 package com.aether.blocks;
 
 import com.aether.entities.hostile.SwetEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.DirectionProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-
 import java.util.function.BiFunction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.Vec3;
 
 public class SwetDropBlock extends EntityBlockEgg{
 
-    private static final DirectionProperty FACING = Properties.FACING;
+    private static final DirectionProperty FACING = BlockStateProperties.FACING;
 
-    public SwetDropBlock(Settings settings, BiFunction<World, BlockPos, ? extends LivingEntity> func) {
+    public SwetDropBlock(Properties settings, BiFunction<Level, BlockPos, ? extends LivingEntity> func) {
         super(settings, func);
     }
 
-    public SwetDropBlock(Settings settings, EntityType<? extends SwetEntity> type) {
+    public SwetDropBlock(Properties settings, EntityType<? extends SwetEntity> type) {
         super(settings, (world, pos) -> {
             SwetEntity swet = type.create(world);
             if (swet != null) {
                 swet.setSize(1, true);
-                swet.setPosition(Vec3d.of(pos));
+                swet.setPos(Vec3.atLowerCornerOf(pos));
             }
             return swet;
         });
     }
 
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
     }
 

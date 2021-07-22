@@ -1,157 +1,156 @@
 package com.aether.entities.passive;
 
 import com.aether.entities.AetherEntityTypes;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.ai.control.MoveControl;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.FlyingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.BaseText;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.FlyingMob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.MoveControl;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
-public class AerwhaleEntity extends FlyingEntity {
+public class AerwhaleEntity extends FlyingMob {
     public float motionYaw, motionPitch;
 
-    public AerwhaleEntity(EntityType<? extends AerwhaleEntity> type, World worldIn) {
+    public AerwhaleEntity(EntityType<? extends AerwhaleEntity> type, Level worldIn) {
         super(type, worldIn);
-        this.ignoreCameraFrustum = true;
+        this.noCulling = true;
         this.moveControl = new AerwhaleEntity.MoveHelperController(this);
     }
 
-    public AerwhaleEntity(World worldIn) {
+    public AerwhaleEntity(Level worldIn) {
         this(AetherEntityTypes.AERWHALE, worldIn);
-        this.setYaw(360.0F * this.random.nextFloat());
-        this.setPitch(90.0F * this.random.nextFloat() - 45.0F);
+        this.setYRot(360.0F * this.random.nextFloat());
+        this.setXRot(90.0F * this.random.nextFloat() - 45.0F);
         this.moveControl = new AerwhaleEntity.MoveHelperController(this);
     }
 
     @Override
-    protected void initGoals() {
-        this.goalSelector.add(5, new AerwhaleEntity.RandomFlyGoal(this));
+    protected void registerGoals() {
+        this.goalSelector.addGoal(5, new AerwhaleEntity.RandomFlyGoal(this));
 //		this.goalSelector.add(7, new AerwhaleEntity.LookAroundGoal(this));
 //		this.goalSelector.add(1, new AerwhaleEntity.UnstuckGoal(this));
 //		this.goalSelector.add(5, new AerwhaleEntity.TravelCourseGoal(this));
     }
 
-    public static DefaultAttributeContainer.Builder initAttributes() {
-        return FlyingEntity.createMobAttributes()
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0D)
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0D);
+    public static AttributeSupplier.Builder initAttributes() {
+        return FlyingMob.createMobAttributes()
+                .add(Attributes.MOVEMENT_SPEED, 1.0D)
+                .add(Attributes.MAX_HEALTH, 20.0D);
     }
 
     @Override
-    public boolean canSpawn(WorldAccess worldIn, SpawnReason spawnReasonIn) {
-        BlockPos pos = new BlockPos(MathHelper.floor(this.getX()), MathHelper.floor(this.getBoundingBox().minY), MathHelper.floor(this.getZ()));
+    public boolean checkSpawnRules(LevelAccessor worldIn, MobSpawnType spawnReasonIn) {
+        BlockPos pos = new BlockPos(Mth.floor(this.getX()), Mth.floor(this.getBoundingBox().minY), Mth.floor(this.getZ()));
 
         return this.random.nextInt(65) == 0 && !worldIn.getBlockCollisions(this, this.getBoundingBox()).findAny().isPresent()
-                && !worldIn.containsFluid(this.getBoundingBox()) && worldIn.getLightLevel(pos) > 8
-                && super.canSpawn(worldIn, spawnReasonIn);
+                && !worldIn.containsAnyLiquid(this.getBoundingBox()) && worldIn.getMaxLocalRawBrightness(pos) > 8
+                && super.checkSpawnRules(worldIn, spawnReasonIn);
     }
 
     @Override
-    public int getLimitPerChunk() {
+    public int getMaxSpawnClusterSize() {
         return 1;
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.extinguish();
+        this.clearFire();
 
-        if (this.getY() < this.world.getBottomY()) {
+        if (this.getY() < this.level.getMinBuildHeight()) {
             this.discard();
         }
     }
 
     @Override
-    public void travel(Vec3d positionIn) {
-        List<Entity> passengers = this.getPassengerList();
+    public void travel(Vec3 positionIn) {
+        List<Entity> passengers = this.getPassengers();
         if (!passengers.isEmpty()) {
             Entity entity = passengers.get(0);
-            if (entity instanceof PlayerEntity) {
-                PlayerEntity player = (PlayerEntity)entity;
+            if (entity instanceof Player) {
+                Player player = (Player)entity;
 
-                this.setYaw(player.getYaw());
-                this.prevYaw = this.getYaw();
-                this.motionYaw = this.prevYaw;
+                this.setYRot(player.getYRot());
+                this.yRotO = this.getYRot();
+                this.motionYaw = this.yRotO;
 
-                this.setPitch(player.getPitch());
-                this.prevPitch = this.getPitch();
-                this.motionPitch = this.prevPitch;
+                this.setXRot(player.getXRot());
+                this.xRotO = this.getXRot();
+                this.motionPitch = this.xRotO;
 
-                this.motionYaw = this.headYaw = player.headYaw;
+                this.motionYaw = this.yHeadRot = player.yHeadRot;
 
-                positionIn = new Vec3d(player.sidewaysSpeed, 0.0, (player.forwardSpeed <= 0.0F)? player.forwardSpeed * 0.25F : player.forwardSpeed);
+                positionIn = new Vec3(player.xxa, 0.0, (player.zza <= 0.0F)? player.zza * 0.25F : player.zza);
 
                 // TODO: Get replacement for isJumping
                 boolean isJumping = false;
 
                 if (isJumping) {
-                    this.setVelocity(new Vec3d(0.0, 0.0, 0.0));
+                    this.setDeltaMovement(new Vec3(0.0, 0.0, 0.0));
                 } else {
-                    double d0 = Math.toRadians(player.getYaw() - 90.0);
-                    double d1 = Math.toRadians(-player.getPitch());
+                    double d0 = Math.toRadians(player.getYRot() - 90.0);
+                    double d1 = Math.toRadians(-player.getXRot());
                     double d2 = Math.cos(d1);
-                    this.setVelocity(
-                            0.98 * (this.getVelocity().x + 0.05 * Math.cos(d0) * d2),
-                            0.98 * (this.getVelocity().y + 0.02 * Math.sin(d1)),
-                            0.98 * (this.getVelocity().z + 0.05 * Math.sin(d0) * d2)
+                    this.setDeltaMovement(
+                            0.98 * (this.getDeltaMovement().x + 0.05 * Math.cos(d0) * d2),
+                            0.98 * (this.getDeltaMovement().y + 0.02 * Math.sin(d1)),
+                            0.98 * (this.getDeltaMovement().z + 0.05 * Math.sin(d0) * d2)
                     );
                 }
 
-                this.stepHeight = 1.0F;
+                this.maxUpStep = 1.0F;
 
-                if (!this.world.isClient()) {
-                    this.flyingSpeed = this.getMovementSpeed() * 0.6F;
+                if (!this.level.isClientSide()) {
+                    this.flyingSpeed = this.getSpeed() * 0.6F;
                     super.travel(positionIn);
                 }
 
-                this.lastLimbDistance = this.limbDistance;
-                double d0 = this.getX() - this.prevX;
-                double d1 = this.getZ() - this.prevZ;
-                float f4 = 4.0F * MathHelper.sqrt((float) (d0*d0 + d1*d1));
+                this.animationSpeedOld = this.animationSpeed;
+                double d0 = this.getX() - this.xo;
+                double d1 = this.getZ() - this.zo;
+                float f4 = 4.0F * Mth.sqrt((float) (d0*d0 + d1*d1));
 
                 if (f4 > 1.0F) {
                     f4 = 1.0F;
                 }
 
-                this.limbDistance += 0.4F * (f4 - this.limbDistance);
-                this.limbAngle += this.limbDistance;
+                this.animationSpeed += 0.4F * (f4 - this.animationSpeed);
+                this.animationPosition += this.animationSpeed;
             }
         } else {
-            this.stepHeight = 0.5F;
+            this.maxUpStep = 0.5F;
             this.flyingSpeed = 0.02F;
             super.travel(positionIn);
         }
     }
 
     @Override
-    protected ActionResult interactMob(PlayerEntity player, Hand hand) {
-        if (player.getUuid().getMostSignificantBits() == 220717875589366683L && player.getUuid().getLeastSignificantBits() == -7181826737698904209L) {
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (player.getUUID().getMostSignificantBits() == 220717875589366683L && player.getUUID().getLeastSignificantBits() == -7181826737698904209L) {
             player.startRiding(this);
-            if (!this.world.isClient()) {
-                BaseText msg = new LiteralText("Serenity is the queen of W(h)ales!!");
-                player.world.getPlayers().forEach(p -> p.sendSystemMessage(msg, player.getUuid()));
+            if (!this.level.isClientSide()) {
+                BaseComponent msg = new TextComponent("Serenity is the queen of W(h)ales!!");
+                player.level.players().forEach(p -> p.sendMessage(msg, player.getUUID()));
             }
-            return ActionResult.success(this.world.isClient());
+            return InteractionResult.sidedSuccess(this.level.isClientSide());
         }
-        return super.interactMob(player, hand);
+        return super.mobInteract(player, hand);
     }
 
     // TODO: Create Sounds for Aerwhales
@@ -176,12 +175,12 @@ public class AerwhaleEntity extends FlyingEntity {
     }
 
     @Override
-    public boolean canImmediatelyDespawn(double distanceToClosestPlayer) {
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return true;
     }
 
     /**
-     * Copied from {@link net.minecraft.entity.mob.GhastEntity.FlyRandomlyGoal}
+     * Copied from {@link net.minecraft.world.entity.monster.Ghast.RandomFloatAroundGoal}
      */
     static class MoveHelperController extends MoveControl {
         private final AerwhaleEntity parentEntity;
@@ -194,40 +193,40 @@ public class AerwhaleEntity extends FlyingEntity {
 
         @Override
         public void tick() {
-            if (this.state == MoveControl.State.MOVE_TO) {
+            if (this.operation == MoveControl.Operation.MOVE_TO) {
                 if (this.courseChangeCooldown-- <= 0) {
                     this.courseChangeCooldown += this.parentEntity.getRandom().nextInt(5) + 2;
-                    Vec3d Vector3d = new Vec3d(this.getTargetX() - this.parentEntity.getX(), this.getTargetY() - this.parentEntity.getY(), this.getTargetZ() - this.parentEntity.getZ());
+                    Vec3 Vector3d = new Vec3(this.getWantedX() - this.parentEntity.getX(), this.getWantedY() - this.parentEntity.getY(), this.getWantedZ() - this.parentEntity.getZ());
                     double d0 = Vector3d.length();
                     Vector3d = Vector3d.normalize();
-                    if (this.canReach(Vector3d, MathHelper.ceil(d0))) {
-                        this.parentEntity.setVelocity(this.parentEntity.getVelocity().add(Vector3d.multiply(0.1D)));
-                        double dx = this.getTargetX() - this.entity.getX();
-                        double dz = this.getTargetZ() - this.entity.getZ();
-                        double dy = this.getTargetY() - this.entity.getY();
+                    if (this.canReach(Vector3d, Mth.ceil(d0))) {
+                        this.parentEntity.setDeltaMovement(this.parentEntity.getDeltaMovement().add(Vector3d.scale(0.1D)));
+                        double dx = this.getWantedX() - this.mob.getX();
+                        double dz = this.getWantedZ() - this.mob.getZ();
+                        double dy = this.getWantedY() - this.mob.getY();
                         double d4 = dx * dx + dy * dy + dz * dz;
                         if (d4 < 2.5000003E-7F) {
-                            this.entity.setForwardSpeed(0.0F);
+                            this.mob.setZza(0.0F);
                             return;
                         }
 
-                        this.parentEntity.prevYaw = this.parentEntity.getYaw();
-                        this.parentEntity.setYaw((float)(MathHelper.atan2(dz, dx) * (180F / (float)Math.PI)) - 90.0F);
-                        this.parentEntity.setPitch(-(float)(Math.atan(dy) * 73.0));
+                        this.parentEntity.yRotO = this.parentEntity.getYRot();
+                        this.parentEntity.setYRot((float)(Mth.atan2(dz, dx) * (180F / (float)Math.PI)) - 90.0F);
+                        this.parentEntity.setXRot(-(float)(Math.atan(dy) * 73.0));
                     }
                     else {
-                        this.state = MoveControl.State.WAIT;
+                        this.operation = MoveControl.Operation.WAIT;
                     }
                 }
             }
         }
 
-        private boolean canReach(Vec3d vec, int p_220673_2_) {
-            Box axisalignedbb = this.parentEntity.getBoundingBox();
+        private boolean canReach(Vec3 vec, int p_220673_2_) {
+            AABB axisalignedbb = this.parentEntity.getBoundingBox();
 
             for (int i = 1; i < p_220673_2_; ++i) {
-                axisalignedbb = axisalignedbb.offset(vec);
-                if (!this.parentEntity.world.hasBlockCollision(this.parentEntity, axisalignedbb, (state, posx) -> state.shouldSuffocate(this.parentEntity.world, posx))) {
+                axisalignedbb = axisalignedbb.move(vec);
+                if (!this.parentEntity.level.hasBlockCollision(this.parentEntity, axisalignedbb, (state, posx) -> state.isSuffocating(this.parentEntity.level, posx))) {
                     return false;
                 }
             }
@@ -241,7 +240,7 @@ public class AerwhaleEntity extends FlyingEntity {
 
         public RandomFlyGoal(AerwhaleEntity aerwhale) {
             this.parentEntity = aerwhale;
-            this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         }
 
         /**
@@ -249,15 +248,15 @@ public class AerwhaleEntity extends FlyingEntity {
          * method as well.
          */
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             MoveControl movementcontroller = this.parentEntity.getMoveControl();
-            if (!movementcontroller.isMoving()) {
+            if (!movementcontroller.hasWanted()) {
                 return true;
             }
             else {
-                double d0 = movementcontroller.getTargetX() - this.parentEntity.getX();
-                double d1 = movementcontroller.getTargetY() - this.parentEntity.getY();
-                double d2 = movementcontroller.getTargetZ() - this.parentEntity.getZ();
+                double d0 = movementcontroller.getWantedX() - this.parentEntity.getX();
+                double d1 = movementcontroller.getWantedY() - this.parentEntity.getY();
+                double d2 = movementcontroller.getWantedZ() - this.parentEntity.getZ();
                 double d3 = d0 * d0 + d1 * d1 + d2 * d2;
                 return d3 < 1.0;
             }
@@ -267,7 +266,7 @@ public class AerwhaleEntity extends FlyingEntity {
          * Returns whether an in-progress EntityAIBase should continue executing
          */
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return false;
         }
 
@@ -284,7 +283,7 @@ public class AerwhaleEntity extends FlyingEntity {
             double x = this.parentEntity.getX() + dx;
             double y = this.parentEntity.getY() + dy;
             double z = this.parentEntity.getZ() + dz;
-            this.parentEntity.getMoveControl().moveTo(x, y, z, 0.5);
+            this.parentEntity.getMoveControl().setWantedPosition(x, y, z, 0.5);
 //			float pitch = (float)MathHelper.atan2(dx, -dz) * (180.0F / (float)Math.PI);
 //			float yaw = (float)MathHelper.atan2(MathHelper.sqrt(dx*dx + dz*dz), dy) * (180.0F / (float)Math.PI);
 //			this.parentEntity.rotationPitch = pitch;

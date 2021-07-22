@@ -2,65 +2,64 @@ package com.aether.world.feature.generator;
 
 import com.aether.Aether;
 import com.aether.world.feature.AetherFeatures;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.SimpleStructurePiece;
-import net.minecraft.structure.StructureManager;
-import net.minecraft.structure.StructurePiecesHolder;
-import net.minecraft.structure.StructurePlacementData;
-import net.minecraft.structure.processor.BlockIgnoreStructureProcessor;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.ServerWorldAccess;
-import net.minecraft.world.StructureWorldAccess;
-import net.minecraft.world.gen.StructureAccessor;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-
 import java.util.Random;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.StructureFeatureManager;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
+import net.minecraft.world.level.levelgen.structure.TemplateStructurePiece;
+import net.minecraft.world.level.levelgen.structure.templatesystem.BlockIgnoreProcessor;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 
 public class SkyrootTowerGenerator {
-    private static final Identifier SKYROOT_TOWER = Aether.locate("skyroot_tower");
+    private static final ResourceLocation SKYROOT_TOWER = Aether.locate("skyroot_tower");
 
-    public static void addPieces(StructureManager manager, StructurePiecesHolder structurePiecesHolder, Random random, BlockPos pos) {
-        BlockRotation blockRotation = BlockRotation.random(random);
+    public static void addPieces(StructureManager manager, StructurePieceAccessor structurePiecesHolder, Random random, BlockPos pos) {
+        Rotation blockRotation = Rotation.getRandom(random);
         structurePiecesHolder.addPiece(new SkyrootTowerGenerator.Piece(manager, SKYROOT_TOWER, pos, blockRotation));
     }
 
-    public static class Piece extends SimpleStructurePiece {
+    public static class Piece extends TemplateStructurePiece {
         private boolean shifted = false;
 
-        public Piece(StructureManager manager, Identifier template, BlockPos pos, BlockRotation rotation) {
+        public Piece(StructureManager manager, ResourceLocation template, BlockPos pos, Rotation rotation) {
             super(AetherFeatures.SKYROOT_TOWER_PIECE, 0, manager, template, template.toString(), createPlacementData(rotation), pos);
         }
 
-        public Piece(ServerWorld world, NbtCompound nbt) {
-            super(AetherFeatures.SKYROOT_TOWER_PIECE, nbt, world, (identifier) -> createPlacementData(BlockRotation.valueOf(nbt.getString("Rot"))));
+        public Piece(ServerLevel world, CompoundTag nbt) {
+            super(AetherFeatures.SKYROOT_TOWER_PIECE, nbt, world, (identifier) -> createPlacementData(Rotation.valueOf(nbt.getString("Rot"))));
         }
 
-        private static StructurePlacementData createPlacementData(BlockRotation rotation) {
-            return (new StructurePlacementData()).setRotation(rotation).setMirror(BlockMirror.NONE).addProcessor(BlockIgnoreStructureProcessor.IGNORE_AIR_AND_STRUCTURE_BLOCKS);
+        private static StructurePlaceSettings createPlacementData(Rotation rotation) {
+            return (new StructurePlaceSettings()).setRotation(rotation).setMirror(Mirror.NONE).addProcessor(BlockIgnoreProcessor.STRUCTURE_AND_AIR);
         }
 
-        protected void writeNbt(ServerWorld world, NbtCompound nbt) {
-            super.writeNbt(world, nbt);
-            nbt.putString("Rot", this.placementData.getRotation().name());
+        protected void addAdditionalSaveData(ServerLevel world, CompoundTag nbt) {
+            super.addAdditionalSaveData(world, nbt);
+            nbt.putString("Rot", this.placeSettings.getRotation().name());
         }
 
-        protected void handleMetadata(String metadata, BlockPos pos, ServerWorldAccess world, Random random, BlockBox boundingBox) {
+        protected void handleDataMarker(String metadata, BlockPos pos, ServerLevelAccessor world, Random random, BoundingBox boundingBox) {
         }
 
-        public boolean generate(StructureWorldAccess world, StructureAccessor structureAccessor, ChunkGenerator chunkGenerator, Random random, BlockBox boundingBox, ChunkPos chunkPos, BlockPos pos) {
-            if (this.pos.getY() > 2) {
+        public boolean postProcess(WorldGenLevel world, StructureFeatureManager structureAccessor, ChunkGenerator chunkGenerator, Random random, BoundingBox boundingBox, ChunkPos chunkPos, BlockPos pos) {
+            if (this.templatePosition.getY() > 2) {
                 if (!shifted) {
-                    this.pos = this.pos.down(1);
+                    this.templatePosition = this.templatePosition.below(1);
                     shifted = true;
                 }
-                boundingBox.encompass(this.structure.calculateBoundingBox(this.placementData, this.pos));
-                return super.generate(world, structureAccessor, chunkGenerator, random, boundingBox, chunkPos, pos);
+                boundingBox.encapsulate(this.template.getBoundingBox(this.placeSettings, this.templatePosition));
+                return super.postProcess(world, structureAccessor, chunkGenerator, random, boundingBox, chunkPos, pos);
             }
             return false;
         }

@@ -2,24 +2,23 @@ package com.aether.loot;
 
 import com.aether.Aether;
 import com.google.common.collect.Sets;
-import net.minecraft.util.Identifier;
-
 import java.util.Collections;
 import java.util.Set;
+import net.minecraft.resources.ResourceLocation;
 
 public class AetherLootTables {
-    private static final Set<Identifier> LOOT_TABLES = Sets.newHashSet();
-    private static final Set<Identifier> LOOT_TABLES_READ_ONLY;
-    public static final Identifier GOLDEN_OAK_STRIPPING;
+    private static final Set<ResourceLocation> LOOT_TABLES = Sets.newHashSet();
+    private static final Set<ResourceLocation> LOOT_TABLES_READ_ONLY;
+    public static final ResourceLocation GOLDEN_OAK_STRIPPING;
 
     public AetherLootTables() {
     }
 
-    private static Identifier register(String id) {
+    private static ResourceLocation register(String id) {
         return registerLootTable(Aether.locate(id));
     }
 
-    private static Identifier registerLootTable(Identifier id) {
+    private static ResourceLocation registerLootTable(ResourceLocation id) {
         if (LOOT_TABLES.add(id)) {
             return id;
         } else {
@@ -27,7 +26,7 @@ public class AetherLootTables {
         }
     }
 
-    public static Set<Identifier> getAll() {
+    public static Set<ResourceLocation> getAll() {
         return LOOT_TABLES_READ_ONLY;
     }
 
