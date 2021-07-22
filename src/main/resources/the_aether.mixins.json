@@ -29,6 +29,9 @@
     "server.ServerWorldMixin",
     "structure.FeatureMixin",
     "village.VillagerProfessionMixin"
+    "world.MultiNoiseBiomeSourceMixin",
+    "world.GeneratorOptionsMixin",
+    "world.NoiseChunkGeneratorMixin"
   ],
   "client": [
     "block.EnchantingTableBlockMixin",

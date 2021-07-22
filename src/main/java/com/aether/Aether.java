@@ -13,7 +13,6 @@ import com.aether.world.dimension.AetherDimension;
 import com.aether.world.feature.AetherConfiguredFeatures;
 import com.aether.world.feature.AetherFeatures;
 import com.aether.world.feature.tree.AetherTreeHell;
-import de.guntram.mcmod.crowdintranslate.CrowdinTranslate;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -47,7 +46,7 @@ public class Aether implements ModInitializer, ClientModInitializer {
     @Override
     @Environment(EnvType.CLIENT)
     public void onInitializeClient() {
-        CrowdinTranslate.downloadTranslations("aether", MOD_ID);
+        //CrowdinTranslate.downloadTranslations("aether", MOD_ID);
         AetherItems.initClient();
         AetherModelPredicates.init();
         AetherArmorModels.registerArmorModels();

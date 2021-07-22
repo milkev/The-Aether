@@ -1,12 +1,9 @@
 buildscript {
     dependencies {
-        classpath "de.guntram.mcmod:crowdin-translate:${project.crowdin_translate_version}"
+        // N/A
     }
     repositories {
-        maven {
-            name = 'CrowdinTranslate source'
-            url = "https://minecraft.guntram.de/maven/"
-        }
+        mavenCentral()
     }
 }
 
@@ -15,11 +12,6 @@ plugins {
     id 'maven-publish'
     id "com.modrinth.minotaur" version "1.2.1"
 }
-
-apply plugin: 'de.guntram.mcmod.crowdin-translate'
-crowdintranslate.crowdinProjectName = 'aether'
-crowdintranslate.minecraftProjectName = 'the_aether'
-crowdintranslate.verbose = true
 
 JavaVersion targetVersion = JavaVersion.VERSION_16
 
@@ -34,35 +26,9 @@ group = project.maven_group
 
 repositories {
     maven {
-        url = "https://minecraft.guntram.de/maven/"
-    }
-    maven {
-        name = "Modmenu-Legacy"
-        url = "https://maven.fabricmc.net/io/github/prospector/modmenu/"
-    }
-    maven {
         name = "Fabric"
         url = "https://maven.fabricmc.net/"
     }
-    maven { url = "https://hephaestus.dev/release" }
-    maven {
-        name = "TerraformersMC"
-        url = "https://maven.kotlindiscord.com/repository/terraformers/"
-    }
-    maven {
-        name = "Ladysnake Libs"
-        url = "https://ladysnake.jfrog.io/artifactory/mods"
-    }
-    maven {
-        url = "https://maven.shedaniel.me/"
-    }
-    maven {
-        url = "https://maven.kyrptonaught.dev/"
-    }
-    maven {
-        url = "https://jitpack.io"
-    }
-    maven { url "https://maven.jamieswhiteshirt.com/libs-release/" }
     mavenCentral()
 }
 
@@ -75,32 +41,6 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings minecraft.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    // Libraries
-    modImplementation(include("com.jamieswhiteshirt:reach-entity-attributes:${project.entity_attributes_version}"))
-
-    modImplementation(include("de.guntram.mcmod:crowdin-translate:${project.crowdin_translate_version}"))
-
-    modImplementation(include("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cardinal_version}"))
-
-    modImplementation(include("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${project.cardinal_version}"))
-
-    // Implement the required portions of FAPI
-    // Remember to maintain these, and add the modular bits as needed. 
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-    // Testing only, do not JiJ
-    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
-
-    // Custom Portal Api
-    modImplementation(include("net.kyrptonaught:customportalapi:${project.customportalapi_version}"))
-
-    modImplementation(include("dev.hephaestus:seedy-behavior:${project.seedy_version}"))
-
-    // Implement Trinkets for parachutes, rings etc.
-    //modImplementation(include("dev.emi:trinkets:${project.trinkets_version}"))
-    modImplementation(include("com.github.CDAGaming:trinkets:${project.trinkets_version}"))
 }
 
 processResources {
@@ -134,23 +74,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-//task publishModrinth (type: TaskModrinthUpload){
-//    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-//    System.out.println("Enter the modrinth auth token: ");
-//    token = br.readLine(); // Get password
-//    projectId = 'IKpsG0nF'
-//    System.out.println("Enter the version number:");
-//    versionNumber = br.readLine();
-//    System.out.println("Enter the version name:");
-//    versionName = br.readLine();
-//    uploadFile = jar // This is the java jar task
-//    System.out.println("Enter the game version number: (See minotaur docs for valids)");
-//    addGameVersion(br.readLine());
-//    System.out.println("Enter changelog:");
-//    changelog = br.readLine();
-//    addLoader('fabric')
-//}
-
 jar {
     manifest {
         attributes 'Implementation-Title': 'AetherReborn',
@@ -179,8 +102,4 @@ publishing {
         // uncomment to publish to the local maven
         // mavenLocal()
     }
-}
-
-build {
-    dependsOn downloadTranslations
 }

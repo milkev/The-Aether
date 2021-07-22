@@ -4,7 +4,6 @@ import com.aether.items.tools.AetherSword;
 import com.aether.items.utils.AetherTiers;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import java.util.UUID;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -22,8 +21,8 @@ public class ValkyrieLance extends AetherSword {
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", 10.0, AttributeModifier.Operation.ADDITION));
         builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier", -3.0F, AttributeModifier.Operation.ADDITION));
-        builder.put(ReachEntityAttributes.REACH, new AttributeModifier(REACH_ID, "Weapon modifier", 6.0, AttributeModifier.Operation.ADDITION));
-        builder.put(ReachEntityAttributes.ATTACK_RANGE, new AttributeModifier(ATTACK_ID, "Weapon modifier", 4.0, AttributeModifier.Operation.ADDITION));
+        //builder.put(ReachEntityAttributes.REACH, new AttributeModifier(REACH_ID, "Weapon modifier", 6.0, AttributeModifier.Operation.ADDITION));
+        //builder.put(ReachEntityAttributes.ATTACK_RANGE, new AttributeModifier(ATTACK_ID, "Weapon modifier", 4.0, AttributeModifier.Operation.ADDITION));
         this.attributes = builder.build();
     }
 

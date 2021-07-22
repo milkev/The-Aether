@@ -4,7 +4,6 @@ import com.aether.api.MoaAPI;
 import com.aether.api.MoaAttributes;
 import com.aether.entities.passive.MoaEntity;
 import com.aether.items.AetherItems;
-import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-public class MoaGenes implements AutoSyncedComponent {
+public class MoaGenes /*implements AutoSyncedComponent*/ {
 
     private final Object2FloatOpenHashMap<MoaAttributes> attributeMap = new Object2FloatOpenHashMap<>();
     private MoaAPI.Race race = MoaAPI.FALLBACK_MOA;
@@ -129,10 +128,10 @@ public class MoaGenes implements AutoSyncedComponent {
     }
 
     public static MoaGenes get(@NotNull MoaEntity moa) {
-        return AetherComponents.MOA_GENETICS_KEY.get(moa);
+        return null;//AetherComponents.MOA_GENETICS_KEY.get(moa);
     }
 
-    @Override
+    //@Override
     public void readFromNbt(CompoundTag tag) {
         initialized = tag.getBoolean("initialized");
         if(initialized) {
@@ -147,7 +146,7 @@ public class MoaGenes implements AutoSyncedComponent {
         }
     }
 
-    @Override
+    //@Override
     public void writeToNbt(CompoundTag tag) {
         tag.putBoolean("initialized", initialized);
         if(initialized) {

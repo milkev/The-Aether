@@ -9,7 +9,6 @@ import com.aether.blocks.decorative.AmbrosiumTorchBlock;
 import com.aether.blocks.decorative.AmbrosiumTorchWallBlock;
 import com.aether.blocks.mechanical.FoodBowlBlock;
 import com.aether.blocks.natural.*;
-import com.aether.client.rendering.block.FluidRenderSetup;
 import com.aether.entities.AetherEntityTypes;
 import com.aether.entities.util.RenderUtils;
 import com.aether.items.AetherItemGroups;
@@ -913,7 +912,7 @@ public class AetherBlocks {
                 ROSE_WISTERIA_LEAVES, FROST_WISTERIA_LEAVES, LAVENDER_WISTERIA_LEAVES, BOREAL_WISTERIA_LEAVES,
                 SKYROOT_LEAF_PILE, ROSE_WISTERIA_LEAF_PILE, FROST_WISTERIA_LEAF_PILE, LAVENDER_WISTERIA_LEAF_PILE
         );
-        FluidRenderSetup.setupFluidRendering(DENSE_AERCLOUD_STILL, null, Aether.locate("dense_aercloud"), 0xFFFFFF);
+        //FluidRenderSetup.setupFluidRendering(DENSE_AERCLOUD_STILL, null, Aether.locate("dense_aercloud"), 0xFFFFFF);
     }
 
     private static Boolean canSpawnOnLeaves(BlockState state, BlockGetter world, BlockPos pos, EntityType<?> type) {

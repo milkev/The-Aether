@@ -27,11 +27,7 @@
   "depends": {
     "fabricloader": ">=0.11.3",
     "minecraft": ">=1.17",
-    "java": ">=16",
-    "fabric-api-base": "*",
-    "fabric-registry-sync-v0": "*",
-    "fabric-networking-v0": "*",
-    "trinkets": "*"
+    "java": ">=16"
   },
   "mixins": [
     "the_aether.mixins.json"
@@ -43,14 +39,6 @@
     ],
     "client": [
       "com.aether.Aether"
-    ],
-    "cardinal-components": [
-      "com.aether.component.AetherComponents"
-    ]
-  },
-  "custom": {
-    "cardinal-components": [
-      "the_aether:moa_genetics"
     ]
   }
 }

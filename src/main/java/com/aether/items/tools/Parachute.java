@@ -1,8 +1,8 @@
 package com.aether.items.tools;
 
-import dev.emi.trinkets.api.TrinketItem;
+import net.minecraft.world.item.Item;
 
-public class Parachute extends TrinketItem {
+public class Parachute extends Item {
 
     public Parachute(Properties settings) {
         super(settings);

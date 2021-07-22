@@ -1,7 +1,6 @@
 package com.aether.items.tools;
 
 import com.aether.items.AetherItems;
-import net.kyrptonaught.customportalapi.util.CustomPortalFluidProvider;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -9,16 +8,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.*;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BucketPickup;
@@ -31,16 +26,16 @@ import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
-public class SkyrootBucket extends Item implements CustomPortalFluidProvider {
+public class SkyrootBucket extends BucketItem {
     private final Fluid containedBlock;
 
     public SkyrootBucket(Properties settings) {
-        super(settings);
+        super(Fluids.WATER, settings);
         this.containedBlock = Fluids.EMPTY;
     }
 
     public SkyrootBucket(Fluid containedFluidIn, Properties settings) {
-        super(settings);
+        super(containedFluidIn, settings);
         this.containedBlock = containedFluidIn;
     }
 
@@ -199,13 +194,13 @@ public class SkyrootBucket extends Item implements CustomPortalFluidProvider {
         return stack.getItem() == AetherItems.SKYROOT_REMEDY_BUCKET ? Rarity.RARE : super.getRarity(stack);
     }
 
-    @Override
-    public Fluid getFluidContent() {
-        return containedBlock;
-    }
-
-    @Override
-    public ItemStack emptyContents(ItemStack itemStack, Player playerEntity) {
-        return emptyBucket(itemStack, playerEntity);
-    }
+//    @Override
+//    public Fluid getFluidContent() {
+//        return containedBlock;
+//    }
+//
+//    @Override
+//    public ItemStack emptyContents(ItemStack itemStack, Player playerEntity) {
+//        return emptyBucket(itemStack, playerEntity);
+//    }
 }
