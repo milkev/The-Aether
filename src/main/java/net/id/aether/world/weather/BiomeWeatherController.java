@@ -1,9 +1,12 @@
 package net.id.aether.world.weather;
 
-import net.id.aether.world.weather.controller.*;
 import java.util.OptionalInt;
 import java.util.function.Supplier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.id.aether.world.weather.controller.*;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 
 /**
@@ -33,6 +36,21 @@ public interface BiomeWeatherController{
      * @param world The Aether
      */
     void tick(ServerWorld world);
+    
+    /**
+     * Write changes in weather for clients.
+     *
+     * @param buffer The buffer to write to
+     */
+    void writeDelta(PacketByteBuf buffer);
+    
+    /**
+     * Reads changes in weather from servers.
+     *
+     * @param buffer The buffer to read from
+     */
+    @Environment(EnvType.CLIENT)
+    void readDelta(PacketByteBuf buffer);
     
     /**
      * Load the weather state from a tag.

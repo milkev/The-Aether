@@ -4,6 +4,7 @@ import net.id.aether.world.weather.AetherWeatherType;
 import net.id.aether.world.weather.BiomeWeatherController;
 import java.util.OptionalInt;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 
 /**
@@ -14,6 +15,12 @@ public final class DummyController implements BiomeWeatherController{
     
     @Override
     public void tick(ServerWorld world){}
+    
+    @Override
+    public void writeDelta(PacketByteBuf buffer){}
+    
+    @Override
+    public void readDelta(PacketByteBuf buffer){}
     
     @Override
     public void load(NbtCompound tag){}
