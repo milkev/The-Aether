@@ -1,13 +1,14 @@
 package net.id.aether.world.weather;
 
 import java.util.OptionalInt;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.id.aether.world.weather.controller.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 
 /**
  * Controls the weather of a biome.
@@ -16,19 +17,26 @@ public interface BiomeWeatherController{
     /**
      * A dummy weather controller that supports no weather.
      */
-    Supplier<BiomeWeatherController> DUMMY = ()->DummyController.INSTANCE;
+    Function<Identifier, BiomeWeatherController> DUMMY = DummyController::new;
     /**
      * A controller that has a lot of thunder.
      */
-    Supplier<BiomeWeatherController> COMMON_THUNDER = CommonThunderController::new;
+    Function<Identifier, BiomeWeatherController> COMMON_THUNDER = CommonThunderController::new;
     /**
      * A controller that mimics warm biomes in vanilla.
      */
-    Supplier<BiomeWeatherController> VANILLA = VanillaController::new;
+    Function<Identifier, BiomeWeatherController> VANILLA = VanillaController::new;
     /**
      * A controller that mimics cold biomes in vanilla.
      */
-    Supplier<BiomeWeatherController> SNOW = SnowController::new;
+    Function<Identifier, BiomeWeatherController> SNOW = SnowController::new;
+    
+    /**
+     * Gets the identifier for the biome that this controller controls.
+     *
+     * @return The biome identifier
+     */
+    Identifier getId();
     
     /**
      * Update the weather for this controller.
@@ -36,6 +44,21 @@ public interface BiomeWeatherController{
      * @param world The Aether
      */
     void tick(ServerWorld world);
+    
+    /**
+     * Writes the state of weather for clients.
+     *
+     * @param buffer The buffer to write to
+     */
+    void write(PacketByteBuf buffer);
+    
+    /**
+     * Reads the state of weather for clients.
+     *
+     * @param buffer The buffer to write to
+     */
+    @Environment(EnvType.CLIENT)
+    void read(PacketByteBuf buffer);
     
     /**
      * Write changes in weather for clients.

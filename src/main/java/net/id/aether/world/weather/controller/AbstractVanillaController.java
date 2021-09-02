@@ -6,9 +6,11 @@ import net.id.aether.world.weather.BiomeWeatherController;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 
 @SuppressWarnings("PointlessBitwiseExpression")
 abstract class AbstractVanillaController implements BiomeWeatherController{
+    private final Identifier id;
     private final boolean isSnowy;
     
     protected int clearTime;
@@ -19,9 +21,16 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
     protected boolean isThundering = false;
     protected boolean wasPrecipitating = false;
     protected boolean wasThundering = false;
+    protected boolean wasSet;
     
-    protected AbstractVanillaController(boolean isSnowy){
+    protected AbstractVanillaController(Identifier id, boolean isSnowy){
+        this.id = id;
         this.isSnowy = isSnowy;
+    }
+    
+    @Override
+    public Identifier getId(){
+        return id;
     }
     
     @Override
@@ -58,20 +67,31 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
     }
     
     @Override
+    public void write(PacketByteBuf buffer){
+        buffer.writeByte(
+            (isPrecipitating ? 1 << 0 : 0) |
+            (isThundering ? 1 << 1 : 0)
+        );
+    }
+    
+    @Override
+    public void read(PacketByteBuf buffer){
+        var state = buffer.readByte();
+        isPrecipitating = (state & 1 << 0) != 0;
+        isThundering = (state & 1 << 1) != 0;
+    }
+    
+    @Override
     public void writeDelta(PacketByteBuf buffer){
-        if((isPrecipitating != wasPrecipitating) || (isThundering != wasThundering)){
-            buffer.writeByte(
-                (isPrecipitating ? 1 << 0 : 0) |
-                (isThundering ? 1 << 1 : 0)
-            );
+        if(wasSet || (isPrecipitating != wasPrecipitating) || (isThundering != wasThundering)){
+            wasSet = false;
+            write(buffer);
         }
     }
     
     @Override
     public void readDelta(PacketByteBuf buffer){
-        var state = buffer.readByte();
-        isPrecipitating = (state & 1 << 0) != 0;
-        isThundering = (state & 1 << 1) != 0;
+        read(buffer);
     }
     
     @Override
@@ -119,8 +139,9 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
     
     @Override
     public boolean set(AetherWeatherType type, int duration){
+        boolean result;
         if(isSnowy){
-            return switch(type){
+            result = switch(type){
                 case CLEAR -> {
                     clearTime = duration;
                     isPrecipitating = false;
@@ -128,12 +149,14 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
                     yield true;
                 }
                 case SNOW -> {
+                    clearTime = 0;
                     precipitatingTime = duration;
                     isPrecipitating = true;
                     isThundering = false;
                     yield true;
                 }
                 case THUNDER_SNOW -> {
+                    clearTime = 0;
                     thunderTime = duration;
                     isThundering = true;
                     isPrecipitating = false;
@@ -142,7 +165,7 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
                 default -> false;
             };
         }else{
-            return switch(type){
+            result = switch(type){
                 case CLEAR -> {
                     clearTime = duration;
                     isPrecipitating = false;
@@ -150,12 +173,14 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
                     yield true;
                 }
                 case RAIN -> {
+                    clearTime = 0;
                     precipitatingTime = duration;
                     isPrecipitating = true;
                     isThundering = false;
                     yield true;
                 }
                 case THUNDER -> {
+                    clearTime = 0;
                     thunderTime = duration;
                     isThundering = true;
                     isPrecipitating = false;
@@ -164,6 +189,8 @@ abstract class AbstractVanillaController implements BiomeWeatherController{
                 default -> false;
             };
         }
+        wasSet |= result;
+        return result;
     }
     
     @Override

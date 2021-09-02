@@ -1,13 +1,12 @@
 package net.id.aether.mixin.client.render;
 
-import net.id.aether.duck.ServerWorldDuck;
-import net.id.aether.world.dimension.AetherDimension;
-import net.id.aether.world.weather.AetherWeatherController;
-import net.id.aether.world.weather.AetherWeatherType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.Random;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.id.aether.world.dimension.AetherDimension;
+import net.id.aether.world.weather.AetherWeatherType;
+import net.id.aether.world.weather.ClientWeatherController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Identifier;
@@ -53,11 +52,6 @@ public abstract class WorldRendererMixin{
             return;
         }
     
-        var controller = ((ServerWorldDuck)AetherWeatherController.WORLD).the_aether$getWeatherController();
-        if(controller == null){
-            return;
-        }
-        
         ci.cancel();
         
         manager.enable();
@@ -92,7 +86,7 @@ public abstract class WorldRendererMixin{
                 double zOffset = field_20795[offsetIndex] * 0.5D;
                 mutable.set(blockX, 0, blockY);
                 Biome biome = world.getBiome(mutable);
-                var optionalWeather = controller.getWeatherController(biome);
+                var optionalWeather = ClientWeatherController.getWeatherController(biome);
                 if(optionalWeather.isEmpty()){
                     continue;
                 }

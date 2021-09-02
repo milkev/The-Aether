@@ -2,13 +2,14 @@ package net.id.aether.world.weather.controller;
 
 import net.id.aether.world.weather.AetherWeatherType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 
 /**
  * A controller that mimics Vanilla behavior but makes thunderstorms twice as common.
  */
 public final class CommonThunderController extends AbstractVanillaController{
-    public CommonThunderController(){
-        super(false);
+    public CommonThunderController(Identifier id){
+        super(id, false);
     }
     
     @Override

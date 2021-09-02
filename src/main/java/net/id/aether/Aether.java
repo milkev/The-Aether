@@ -26,6 +26,7 @@ import net.id.aether.world.feature.AetherConfiguredFeatures;
 import net.id.aether.world.feature.AetherFeatures;
 import net.id.aether.world.feature.tree.AetherTreeHell;
 import net.id.aether.world.gen.AetherCarvers;
+import net.id.aether.world.weather.AetherWeatherController;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,6 +56,7 @@ public class Aether implements ModInitializer, ClientModInitializer {
         AetherGameRules.init();
         AetherLootNumberProviderTypes.init();
         MoaAPI.init();
+        AetherWeatherController.init();
     }
 
     @Override
@@ -69,5 +71,6 @@ public class Aether implements ModInitializer, ClientModInitializer {
         AetherFluids.initClient();
         AetherParticles.initClient();
         AetherColorProviders.initClient();
+        AetherWeatherController.initClient();
     }
 }
