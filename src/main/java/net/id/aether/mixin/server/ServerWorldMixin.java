@@ -51,7 +51,7 @@ public abstract class ServerWorldMixin extends World implements ServerWorldDuck{
     }
     
     @Inject(method = "tick", at = @At(value = "RETURN"))
-    void postEntityTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci){
+    void postEntityTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         if (this.idleTimeout < 300) {
             entityList.forEach(entityObj -> {
                 if (entityObj instanceof FloatingBlockEntity entity) {

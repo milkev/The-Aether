@@ -26,8 +26,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 
 public class AechorPlantEntity extends AetherAnimalEntity implements RangedAttackMob {
-    public float sinage;
     public final int poisonRemaining;
+    public float sinage;
     public int size;
 
     public AechorPlantEntity(EntityType<? extends AechorPlantEntity> entityType, World world) {
@@ -53,19 +53,22 @@ public class AechorPlantEntity extends AetherAnimalEntity implements RangedAttac
         super.initGoals();
 
         this.goalSelector.add(4, new ProjectileAttackGoal(this, 0.0D, 30, 1.0F));
-        this.targetSelector.add(1, new RevengeGoal(this));
-        this.targetSelector.add(2, new FollowTargetGoal<>(this, LivingEntity.class, true));
+        this.targetSelector.add(1, new RevengeGoal(this, AechorPlantEntity.class));
+        this.targetSelector.add(2, new FollowTargetGoal<>(this, LivingEntity.class, 10, true, false,
+                entity -> !(entity instanceof AechorPlantEntity)));
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (this.hurtTime > 0) this.sinage += 0.9F;
+        if (this.hurtTime > 0)
+            this.sinage += 0.9F;
 
         this.sinage += (this.getAttacker() != null ? 0.3f : 0.1f);
 
-        if (this.sinage > 3.141593F * 2F) this.sinage -= (3.141593F * 2F);
+        if (this.sinage > 3.141593F * 2F)
+            this.sinage -= (3.141593F * 2F);
 
         if (this.world.getBlockState(this.getBlockPos().down(1)).getBlock() != AetherBlocks.AETHER_GRASS_BLOCK) {
             this.tickInVoid();
@@ -80,7 +83,8 @@ public class AechorPlantEntity extends AetherAnimalEntity implements RangedAttac
 
     @Override
     public boolean canSpawn(WorldAccess worldIn, SpawnReason SpawnReason) {
-        return worldIn.getBlockState(this.getBlockPos().down(1)).getBlock() == AetherBlocks.AETHER_GRASS_BLOCK && this.random.nextInt(400) == 0;
+        return worldIn.getBlockState(this.getBlockPos().down(1)).getBlock() == AetherBlocks.AETHER_GRASS_BLOCK
+                && this.random.nextInt(400) == 0;
     }
 
     @Override
@@ -104,12 +108,14 @@ public class AechorPlantEntity extends AetherAnimalEntity implements RangedAttac
         if (heldItem.getItem() == AetherItems.SKYROOT_BUCKET && !player.getAbilities().creativeMode) {
             heldItem.setCount(heldItem.getCount() - 1);
 
-            if (heldItem.isEmpty()) player.setStackInHand(hand, new ItemStack(AetherItems.SKYROOT_POISON_BUCKET));
+            if (heldItem.isEmpty())
+                player.setStackInHand(hand, new ItemStack(AetherItems.SKYROOT_POISON_BUCKET));
             else if (!player.getInventory().insertStack(new ItemStack(AetherItems.SKYROOT_POISON_BUCKET)))
                 player.dropItem(new ItemStack(AetherItems.SKYROOT_POISON_BUCKET), false);
 
             return ActionResult.SUCCESS;
-        } else return super.interactMob(player, hand);
+        } else
+            return super.interactMob(player, hand);
     }
 
     public Vec3d getVelocity() {
@@ -121,7 +127,8 @@ public class AechorPlantEntity extends AetherAnimalEntity implements RangedAttac
 
     @Override
     public void takeKnockback(double strength, double xRatio, double zRatio) {
-        if (this.getHealth() <= 0.0F) super.takeKnockback(strength, xRatio, zRatio);
+        if (this.getHealth() <= 0.0F)
+            super.takeKnockback(strength, xRatio, zRatio);
     }
 
     @Override
