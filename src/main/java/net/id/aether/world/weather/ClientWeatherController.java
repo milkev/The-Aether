@@ -46,20 +46,26 @@ public final class ClientWeatherController{
         IDENTIFIER_CONTROLLERS = Map.of();
     }
     
-    public static void updateController(Identifier biome, Identifier id, PacketByteBuf buffer){
-        var entry = IDENTIFIER_CONTROLLERS.get(Map.entry(biome, id));
-        var controller = entry.getKey();
-        var state = entry.getValue();
-        if(controller != null){
+    public static <T> void updateController(Biome biome, WeatherController<T> controller, PacketByteBuf buffer){
+        var controllers = BIOME_CONTROLLERS.get(biome);
+        if(controllers == null){
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        var state = (T)controllers.get(controller);
+        if(state != null){
             controller.readDelta(state, buffer);
         }
     }
     
-    public static void setController(Identifier biome, Identifier id, PacketByteBuf buffer){
-        var entry = IDENTIFIER_CONTROLLERS.get(Map.entry(biome, id));
-        var controller = entry.getKey();
-        var state = entry.getValue();
-        if(controller != null){
+    public static <T> void setController(Biome biome, WeatherController<T> controller, PacketByteBuf buffer){
+        var controllers = BIOME_CONTROLLERS.get(biome);
+        if(controllers == null){
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        var state = (T)controllers.get(controller);
+        if(state != null){
             controller.read(state, buffer);
         }
     }
@@ -67,6 +73,6 @@ public final class ClientWeatherController{
     @SuppressWarnings("unchecked")
     public static <T> boolean has(Identifier biome, WeatherController<T> controller){
         var entry = IDENTIFIER_CONTROLLERS.get(Map.entry(biome, controller.getIdentifier()));
-        return entry == null ? false : controller.isActive((T)entry.getValue());
+        return entry != null && controller.isActive((T)entry.getValue());
     }
 }

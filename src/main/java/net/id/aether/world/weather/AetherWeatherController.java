@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,7 +15,6 @@ import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.tag.TagFactory;
 import net.id.aether.Aether;
 import net.id.aether.duck.ServerWorldDuck;
 import net.id.aether.world.dimension.AetherDimension;
@@ -28,7 +26,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
@@ -145,26 +142,71 @@ public final class AetherWeatherController{
             ClientWeatherController.deinit()
         );
         ClientPlayNetworking.registerGlobalReceiver(PACKET_WEATHER_UPDATE, (client, handler, buffer, sender)->{
-            updateClientController(buffer, ClientWeatherController::updateController);
+            updateClientController(handler.getRegistryManager(), buffer, ClientWeatherController::updateController);
         });
         ClientPlayNetworking.registerGlobalReceiver(PACKET_WEATHER_SEND, (client, handler, buffer, sender)->{
-            updateClientController(buffer, ClientWeatherController::setController);
+            updateClientController(handler.getRegistryManager(), buffer, ClientWeatherController::setController);
         });
     }
     
     @Environment(EnvType.CLIENT)
-    private static void updateClientController(PacketByteBuf buffer, TriConsumer<Identifier, Identifier, PacketByteBuf> callback){
+    private static void updateClientController(DynamicRegistryManager registryManager, PacketByteBuf buffer, TriConsumer<Biome, WeatherController<?>, PacketByteBuf> callback){
+        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
+        
         while(buffer.readableBytes() > 0){
             var controllerCount = Byte.toUnsignedInt(buffer.readByte());
-            var biomeId = buffer.readIdentifier();
+            var biome = biomeRegistry.get(buffer.readVarInt());
             for(int i = 0; i < controllerCount; i++){
-                var id = buffer.readIdentifier();
+                var controller = WEATHER_REGISTRY.get(buffer.readVarInt());
                 var size = buffer.readByte();
                 var nextId = buffer.readerIndex() + size;
-                callback.accept(biomeId, id, buffer);
+                callback.accept(biome, controller, buffer);
                 buffer.readerIndex(nextId);
             }
         }
+    }
+    
+    private void writeControllerState(DynamicRegistryManager registryManager, PacketByteBuf buffer, TriConsumer<WeatherController<Object>, Object, PacketByteBuf> callback){
+        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
+        
+        controllers.forEach((biome, controllerMap)->{
+            var mark = buffer.writerIndex();
+            buffer.writeByte(0);
+            buffer.writeVarInt(biomeRegistry.getRawId(biome));
+            var position = buffer.writerIndex();
+            
+            var count = new Object(){
+                int value = 0;
+            };
+            
+            controllerMap.forEach((controller, state)->{
+                buffer.markWriterIndex();
+                buffer.writeVarInt(WEATHER_REGISTRY.getRawId(controller));
+                buffer.writeByte(0);
+                var index = buffer.writerIndex();
+                //noinspection unchecked
+                callback.accept((WeatherController<Object>)controller, state, buffer);
+                var index2 = buffer.writerIndex();
+                if(index == index2){
+                    // Data was not written, no change;
+                    buffer.resetWriterIndex();
+                    return;
+                }
+                buffer.writerIndex(index - 1);
+                buffer.writeByte(index2 - index);
+                buffer.writerIndex(index2);
+                count.value++;
+            });
+            
+            if(position == buffer.writerIndex()){
+                buffer.writerIndex(mark);
+            }else{
+                buffer.markWriterIndex();
+                buffer.writerIndex(mark);
+                buffer.writeByte(count.value);
+                buffer.resetWriterIndex();
+            }
+        });
     }
     
     /**
@@ -247,49 +289,6 @@ public final class AetherWeatherController{
         players.forEach((player)->
             ServerPlayNetworking.getSender(player).sendPacket(packet)
         );
-    }
-    
-    private void writeControllerState(DynamicRegistryManager registryManager, PacketByteBuf buffer, TriConsumer<WeatherController<Object>, Object, PacketByteBuf> callback){
-        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
-        
-        controllers.forEach((biome, controllerMap)->{
-            var mark = buffer.writerIndex();
-            buffer.writeByte(0);
-            buffer.writeIdentifier(biomeRegistry.getId(biome));
-            var position = buffer.writerIndex();
-    
-            var count = new Object(){
-                int value = 0;
-            };
-            
-            controllerMap.forEach((controller, state)->{
-                buffer.markWriterIndex();
-                buffer.writeIdentifier(controller.getIdentifier());
-                buffer.writeByte(0);
-                var index = buffer.writerIndex();
-                //noinspection unchecked
-                callback.accept((WeatherController<Object>)controller, state, buffer);
-                var index2 = buffer.writerIndex();
-                if(index == index2){
-                    // Data was not written, no change;
-                    buffer.resetWriterIndex();
-                    return;
-                }
-                buffer.writerIndex(index - 1);
-                buffer.writeByte(index2 - index);
-                buffer.writerIndex(index2);
-                count.value++;
-            });
-            
-            if(position == buffer.writerIndex()){
-                buffer.writerIndex(mark);
-            }else{
-                buffer.markWriterIndex();
-                buffer.writerIndex(mark);
-                buffer.writeByte(count.value);
-                buffer.resetWriterIndex();
-            }
-        });
     }
     
     /**
