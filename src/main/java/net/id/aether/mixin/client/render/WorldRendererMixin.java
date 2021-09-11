@@ -6,7 +6,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.id.aether.world.dimension.AetherDimension;
 import net.id.aether.world.weather.AetherWeatherController;
-import net.id.aether.world.weather.AetherWeatherType;
 import net.id.aether.world.weather.ClientWeatherController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
