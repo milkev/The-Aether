@@ -8,15 +8,16 @@ import net.id.aether.entities.vehicle.AetherBoatTypes;
 import net.id.aether.fluids.AetherFluids;
 import net.id.aether.items.armor.AetherArmorMaterials;
 import net.id.aether.items.food.AetherFoodComponent;
-import net.id.aether.items.food.HealingStoneItem;
+import net.id.aether.items.misc.HealingStoneItem;
 import net.id.aether.items.food.ValkyrieMilkItem;
 import net.id.aether.items.food.WhiteAppleItem;
 import net.id.aether.items.resources.AmbrosiumShardItem;
 import net.id.aether.items.tools.*;
 import net.id.aether.items.utils.StackableVariantColorizer;
 import net.id.aether.items.weapons.*;
-import net.id.aether.registry.RegistryQueue;
-import net.id.aether.registry.RegistryQueue.Action;
+import net.id.aether.registry.AetherRegistryQueues;
+import net.id.incubus_core.util.RegistryQueue;
+import net.id.incubus_core.util.RegistryQueue.Action;
 import net.id.aether.util.item.AetherRarity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -281,10 +282,10 @@ public class AetherItems {
     public static final Item ENCHANTED_BLUEBERRY = add("enchanted_blueberry", new Item(food(AetherFoodComponent.ENCHANTED_BLUEBERRY, RARE)), compostable50);
     public static final Item ORANGE = add("orange", new Item(food(AetherFoodComponent.ORANGE)), compostable65);
     public static final WhiteAppleItem WHITE_APPLE = add("white_apple", new WhiteAppleItem(food(AetherFoodComponent.WHITE_APPLE)), compostable(0f));
+    public static final Item AMADRYS_BUSHEL = add("amadrys_bushel", new AliasedBlockItem(AetherBlocks.AMADRYS, food(AetherFoodComponent.GENERIC_WORSE)), compostable30);
     public static final Item BLUE_GUMMY_SWET = add("blue_gummy_swet", new Item(food(AetherFoodComponent.GUMMY_SWET, AetherRarity.AETHER_LOOT)));
     public static final Item GOLDEN_GUMMY_SWET = add("golden_gummy_swet", new Item(food(AetherFoodComponent.GUMMY_SWET, AetherRarity.AETHER_LOOT)));
     public static final ValkyrieMilkItem VALKYRIE_MILK = add("valkyrie_milk", new ValkyrieMilkItem(food(AetherFoodComponent.VALKYRIE_MILK, EPIC).maxCount(1)));
-    public static final HealingStoneItem HEALING_STONE = add("healing_stone", new HealingStoneItem(food(AetherFoodComponent.HEALING_STONE, RARE)));
     public static final Item CANDY_CANE = add("candy_cane", new Item(food(AetherFoodComponent.GENERIC)), compostable30);
     public static final Item GINGERBREAD_MAN = add("ginger_bread_man", new Item(food(AetherFoodComponent.GENERIC)), compostable30);
     public static final Item MOA_MEAT = add("moa_meat", new Item(food(AetherFoodComponent.MOA_MEAT)));
@@ -304,6 +305,7 @@ public class AetherItems {
     public static final BookOfLoreItem LORE_BOOK = add("lore_book", new BookOfLoreItem(misc().maxCount(1)));
     public static final BlockItem INCUBATOR = add("incubator", AetherBlocks.INCUBATOR, misc, fuel(300));
     public static final BlockItem FOOD_BOWL = add("food_bowl", AetherBlocks.FOOD_BOWL, misc, fuel(300));
+    public static final HealingStoneItem HEALING_STONE = add("healing_stone", new HealingStoneItem(misc.rarity(RARE)));
 
     public static final SkyrootBucketItem SKYROOT_BUCKET = add("skyroot_bucket", new SkyrootBucketItem(misc().maxCount(16)), fuel(200), emptyBucketDispenserBehavior);
 
@@ -413,13 +415,25 @@ public class AetherItems {
     public static final BlockItem LIGHT_HELLFIRE_SLAB = add("light_hellfire_slab", AetherBlocks.LIGHT_HELLFIRE_SLAB, block);
     public static final BlockItem LIGHT_HELLFIRE_STAIRS = add("light_hellfire_stairs", AetherBlocks.LIGHT_HELLFIRE_STAIRS, block);
     public static final BlockItem LIGHT_HELLFIRE_WALL = add("light_hellfire_wall", AetherBlocks.LIGHT_HELLFIRE_WALL, block);
-
+    */
     public static final BlockItem CARVED_STONE = add("carved_stone", AetherBlocks.CARVED_STONE, block);
-    //public static final BlockItem CARVED_STONE_TRAP = add("carved_stone_trap", AetherBlocks.CARVED_STONE_TRAP, block);
-    public static final BlockItem CARVED_SLAB = add("carved_slab", AetherBlocks.CARVED_SLAB, block);
-    public static final BlockItem CARVED_STAIRS = add("carved_stairs", AetherBlocks.CARVED_STAIRS, block);
-    public static final BlockItem CARVED_WALL = add("carved_wall", AetherBlocks.CARVED_WALL, block);
+    public static final BlockItem CARVED_SLAB = add("carved_stone_slab", AetherBlocks.CARVED_STONE_SLAB, block);
+    public static final BlockItem CARVED_STAIRS = add("carved_stone_stairs", AetherBlocks.CARVED_STONE_STAIRS, block);
+    public static final BlockItem CARVED_WALL = add("carved_stone_wall", AetherBlocks.CARVED_STONE_WALL, block);
 
+    public static final BlockItem MOSSY_CARVED_STONE = add("mossy_carved_stone", AetherBlocks.MOSSY_CARVED_STONE, block);
+    public static final BlockItem MOSSY_CARVED_SLAB = add("mossy_carved_stone_slab", AetherBlocks.MOSSY_CARVED_STONE_SLAB, block);
+    public static final BlockItem MOSSY_CARVED_STAIRS = add("mossy_carved_stone_stairs", AetherBlocks.MOSSY_CARVED_STONE_STAIRS, block);
+    public static final BlockItem MOSSY_CARVED_WALL = add("mossy_carved_stone_wall", AetherBlocks.MOSSY_CARVED_STONE_WALL, block);
+
+    public static final BlockItem CRACKED_CARVED_STONE = add("cracked_carved_stone", AetherBlocks.CRACKED_CARVED_STONE, block);
+    public static final BlockItem GLYPHED_CARVED_STONE = add("glyphed_carved_stone", AetherBlocks.GLYPHED_CARVED_STONE, block);
+    public static final BlockItem CARVED_STONE_PANEL = add("carved_stone_panel", AetherBlocks.CARVED_STONE_PANEL, block);
+    public static final BlockItem CARVED_STONE_PANEL_LIT = add("carved_stone_panel_lit", AetherBlocks.CARVED_STONE_PANEL_LIT, block);
+    public static final BlockItem CARVED_STONE_EYE = add("carved_stone_eye", AetherBlocks.CARVED_STONE_EYE, block);
+    public static final BlockItem CARVED_STONE_EYE_LIT = add("carved_stone_eye_lit", AetherBlocks.CARVED_STONE_EYE_LIT, block);
+
+    /*
     public static final BlockItem LIGHT_CARVED_STONE = add("light_carved_stone", AetherBlocks.LIGHT_CARVED_STONE, block);
     //public static final BlockItem LIGHT_CARVED_STONE_TRAP = add("light_carved_stone_trap", AetherBlocks.LIGHT_CARVED_STONE_TRAP, block);
     public static final BlockItem LIGHT_CARVED_SLAB = add("light_carved_slab", AetherBlocks.LIGHT_CARVED_SLAB, block);
@@ -570,12 +584,12 @@ public class AetherItems {
     public static final WallStandingBlockItem AMBROSIUM_TORCH = add("ambrosium_torch", new WallStandingBlockItem(AetherBlocks.AMBROSIUM_TORCH, AetherBlocks.AMBROSIUM_TORCH_WALL, block));
 
     public static void init() {
-        RegistryQueue.ITEM.register();
+        AetherRegistryQueues.ITEM.register();
     }
 
     @SafeVarargs
     private static <V extends Item> V add(String id, V item, Action<? super V>... additionalActions) {
-        return RegistryQueue.ITEM.add(locate(id), item, additionalActions);
+        return AetherRegistryQueues.ITEM.add(locate(id), item, additionalActions);
     }
 
     @SafeVarargs
