@@ -1,5 +1,6 @@
 package net.id.aether.world.weather;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,24 +12,35 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.tag.TagFactory;
 import net.id.aether.Aether;
 import net.id.aether.duck.ServerWorldDuck;
+import net.id.aether.world.dimension.AetherDimension;
+import net.id.aether.world.weather.controller.ThunderWeatherController;
+import net.id.aether.world.weather.controller.VanillaWeatherController;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import static net.id.aether.Aether.MOD_ID;
+import static net.id.aether.Aether.locate;
 
 /**
  * The controller for weather in the Aether.
@@ -40,8 +52,24 @@ public final class AetherWeatherController{
     private static final Identifier PACKET_WEATHER_SEND = Aether.locate("weather_send");
     private static final Identifier PACKET_WEATHER_UPDATE = Aether.locate("weather_update");
     
+    @SuppressWarnings("unchecked")
+    private static final Registry<WeatherController<?>> WEATHER_REGISTRY = (Registry<WeatherController<?>>)(Object)FabricRegistryBuilder.createSimple(WeatherController.class, locate("weather"))
+        .attribute(RegistryAttribute.SYNCED)
+        .buildAndRegister();
+    
+    /*
+    FIXME This is not a real tag thing, vanilla doesn't like to have a duplicate tag type so it looks like we will
+    need to make a bare-bones version for us to use.
+     */
+    private static final Map<WeatherController<?>, Set<RegistryKey<Biome>>> WEATHER_TAGS = new Object2ObjectOpenHashMap<>();
+    
+    public static final VanillaWeatherController CONTROLLER_RAIN = registerWeatherController(new VanillaWeatherController(locate("rain")));
+    public static final VanillaWeatherController CONTROLLER_SNOW = registerWeatherController(new VanillaWeatherController(locate("snow")));
+    public static final ThunderWeatherController CONTROLLER_THUNDER = registerWeatherController(new ThunderWeatherController(locate("thunder")));
+    public static final ThunderWeatherController CONTROLLER_THUNDER_SNOW = registerWeatherController(new ThunderWeatherController(locate("thunder_snow")));
+    
     private final ServerWorld world;
-    private final Map<Biome, BiomeWeatherController> controllers;
+    private final Map<Biome, Map<WeatherController<?>, ?>> controllers;
     private final Path savePath;
     
     public static ServerWorld WORLD;
@@ -51,7 +79,7 @@ public final class AetherWeatherController{
         this.world = world;
         this.savePath = savePath;
         controllers = createControllerMap();
-        load();
+        load(world.getRegistryManager());
     }
     
     public static void init(){
@@ -70,9 +98,41 @@ public final class AetherWeatherController{
         }
     }
     
+    public static <S, T extends WeatherController<S>> T registerWeatherController(T controller){
+        var identifier = controller.getIdentifier();
+        Registry.register(WEATHER_REGISTRY, identifier, controller);
+        
+        var biomes = switch(controller.getIdentifier().toString()){
+            case "the_aether:rain", "the_aether:thunder" -> Set.of(
+                AetherDimension.HIGHLANDS_PLAINS,
+                AetherDimension.HIGHLANDS_FOREST,
+                AetherDimension.HIGHLANDS_THICKET,
+                AetherDimension.WISTERIA_WOODS,
+                AetherDimension.CONTINENTAL_PLATO,
+                AetherDimension.HIGHLANDS_SHIELD
+            );
+            case "the_aether:snow", "the_aether:thunder_snow" -> Set.of(
+                AetherDimension.AUTUMNAL_TUNDRA
+            );
+            default -> throw new IllegalArgumentException("Unknown controller: " + controller.getIdentifier());
+        };
+        
+        if(WEATHER_TAGS.putIfAbsent(controller, biomes) != null){
+            throw new IllegalStateException("Weather controller \"" + identifier + "\" was already registered");
+        }
+        return controller;
+    }
+    
+    public static Set<WeatherController<?>> getControllers(){
+        return WEATHER_REGISTRY.stream().collect(Collectors.toUnmodifiableSet());
+    }
+    
     private void sendWeatherInfo(ServerPlayerEntity player){
         var buffer = PacketByteBufs.create();
-        writeControllerState(buffer, BiomeWeatherController::write);
+        writeControllerState(player.world.getRegistryManager(), buffer, WeatherController::write);
+        if(buffer.writerIndex() == 0){
+            return;
+        }
         ServerPlayNetworking.send(player, PACKET_WEATHER_SEND, buffer);
     }
     
@@ -93,13 +153,17 @@ public final class AetherWeatherController{
     }
     
     @Environment(EnvType.CLIENT)
-    private static void updateClientController(PacketByteBuf buffer, BiConsumer<Identifier, PacketByteBuf> callback){
+    private static void updateClientController(PacketByteBuf buffer, TriConsumer<Identifier, Identifier, PacketByteBuf> callback){
         while(buffer.readableBytes() > 0){
-            var id = buffer.readIdentifier();
-            var size = buffer.readByte();
-            var nextId = buffer.readerIndex() + size;
-            callback.accept(id, buffer);
-            buffer.readerIndex(nextId);
+            var controllerCount = Byte.toUnsignedInt(buffer.readByte());
+            var biomeId = buffer.readIdentifier();
+            for(int i = 0; i < controllerCount; i++){
+                var id = buffer.readIdentifier();
+                var size = buffer.readByte();
+                var nextId = buffer.readerIndex() + size;
+                callback.accept(biomeId, id, buffer);
+                buffer.readerIndex(nextId);
+            }
         }
     }
     
@@ -128,43 +192,42 @@ public final class AetherWeatherController{
      *
      * @return A map of controllers
      */
-    private Map<Biome, BiomeWeatherController> createControllerMap(){
+    private Map<Biome, Map<WeatherController<?>, ?>> createControllerMap(){
         return createControllerMap(world.getRegistryManager());
     }
     
-    static Map<Biome, BiomeWeatherController> createControllerMap(DynamicRegistryManager registryManager){
-        var registry = registryManager.get(Registry.BIOME_KEY);
-        return getBiomes(registryManager).stream()
-            .map((biome)->{
-                //TODO Figure out a better way to handle this, biome duck + weather category?
-                //Wind, if implemented should go to highlands plains and continental plateau
-                var key = registry.getKey(biome).orElse(null);
-                // Should never happen
-                if(key == null){
-                    return null;
+    static Map<Biome, Map<WeatherController<?>, ?>> createControllerMap(DynamicRegistryManager registryManager){
+        var biomes = getBiomes(registryManager);
+        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
+        
+        Map<Biome, Map<WeatherController<?>, Object>> map = new Object2ObjectOpenHashMap<>();
+        biomes.forEach((biome)->map.put(biome, new HashMap<>()));
+        WEATHER_TAGS.forEach((controller, tag)->{
+            for(var biomeKey : tag){
+                var biome = biomeRegistry.get(biomeKey);
+                var state = controller.createState(biome);
+                if(state == null){
+                    continue;
                 }
-                var id = key.getValue();
-                var controller = (switch(id.getPath()){
-                    case "aether_highlands", "aether_highlands_forest", "aether_highlands_thicket" -> BiomeWeatherController.COMMON_THUNDER;
-                    case "aether_wisteria_woods", "continental_plato", "highlands_shield" -> BiomeWeatherController.VANILLA;
-                    case "autumnal_tundra" -> BiomeWeatherController.SNOW;
-                    
-                    default -> {
-                        LOGGER.warn("Biome \"%s\" isn't handled in AetherWeatherController.createControllerMap".formatted(key.toString()));
-                        yield BiomeWeatherController.DUMMY;
-                    }
-                }).apply(id);
-                return Map.entry(biome, controller);
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+                var controllers = map.get(biome);
+                if(controllers == null){
+                    var key = biomeRegistry.getId(biome);
+                    throw new RuntimeException("Can not register weather for the non Aether biome: " + key);
+                }
+                controllers.put(controller, state);
+            }
+        });
+        map.replaceAll((biome, set)->set.isEmpty() ? Map.of() : Collections.unmodifiableMap(set));
+        return Collections.unmodifiableMap(map);
     }
     
     /**
      * Ticks all the weather in the Aether. Replaces the vanilla weather ticking.
      */
     public void tick(){
-        controllers.values().forEach((controller)->controller.tick(world));
+        var random = world.getRandom();
+        //noinspection unchecked
+        controllers.values().forEach((map)->map.forEach((controller, state)->((WeatherController<Object>)controller).tick(random, state)));
     
         var players = world.getPlayers();
         // No players, don't bother calculating updates
@@ -173,7 +236,7 @@ public final class AetherWeatherController{
         }
         
         var buffer = PacketByteBufs.create();
-        writeControllerState(buffer, BiomeWeatherController::writeDelta);
+        writeControllerState(world.getRegistryManager(), buffer, WeatherController::writeDelta);
         // No delta
         if(buffer.writerIndex() == 0){
             buffer.release();
@@ -186,29 +249,55 @@ public final class AetherWeatherController{
         );
     }
     
-    private void writeControllerState(PacketByteBuf buffer, BiConsumer<BiomeWeatherController, PacketByteBuf> callback){
-        controllers.values().forEach((controller)->{
-            buffer.markWriterIndex();
-            buffer.writeIdentifier(controller.getId());
+    private void writeControllerState(DynamicRegistryManager registryManager, PacketByteBuf buffer, TriConsumer<WeatherController<Object>, Object, PacketByteBuf> callback){
+        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
+        
+        controllers.forEach((biome, controllerMap)->{
+            var mark = buffer.writerIndex();
             buffer.writeByte(0);
-            var index = buffer.writerIndex();
-            callback.accept(controller, buffer);
-            var index2 = buffer.writerIndex();
-            if(index == index2){
-                // Data was not written, no change;
+            buffer.writeIdentifier(biomeRegistry.getId(biome));
+            var position = buffer.writerIndex();
+    
+            var count = new Object(){
+                int value = 0;
+            };
+            
+            controllerMap.forEach((controller, state)->{
+                buffer.markWriterIndex();
+                buffer.writeIdentifier(controller.getIdentifier());
+                buffer.writeByte(0);
+                var index = buffer.writerIndex();
+                //noinspection unchecked
+                callback.accept((WeatherController<Object>)controller, state, buffer);
+                var index2 = buffer.writerIndex();
+                if(index == index2){
+                    // Data was not written, no change;
+                    buffer.resetWriterIndex();
+                    return;
+                }
+                buffer.writerIndex(index - 1);
+                buffer.writeByte(index2 - index);
+                buffer.writerIndex(index2);
+                count.value++;
+            });
+            
+            if(position == buffer.writerIndex()){
+                buffer.writerIndex(mark);
+            }else{
+                buffer.markWriterIndex();
+                buffer.writerIndex(mark);
+                buffer.writeByte(count.value);
                 buffer.resetWriterIndex();
-                return;
             }
-            buffer.writerIndex(index - 1);
-            buffer.writeByte(index2 - index);
-            buffer.writerIndex(index2);
         });
     }
     
     /**
      * Loads the weather info from disk.
+     *
+     * @param registryManager The registry manager
      */
-    private void load(){
+    private void load(DynamicRegistryManager registryManager){
         // No save, nothing to load.
         if(!Files.isRegularFile(savePath)){
             return;
@@ -222,27 +311,68 @@ public final class AetherWeatherController{
             return;
         }
         
-        for(var controller : controllers.values()){
-            var tag = compound.getCompound(controller.getId().toString());
-            if(tag.isEmpty()){
-                continue;
+        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
+        controllers.forEach((biome, controllerMap)->{
+            var biomeId = biomeRegistry.getId(biome);
+            if(biomeId == null){
+                //How?
+                throw new RuntimeException("Biome ID was null for biome " + biome);
             }
-            controller.load(tag);
-        }
+            if(!compound.contains(biomeId.toString(), NbtElement.COMPOUND_TYPE)){
+                return;
+            }
+    
+            var biomeTag = compound.getCompound(biomeId.toString());
+            if(biomeTag.isEmpty()){
+                return;
+            }
+            
+            controllerMap.forEach((controller, state)->{
+                var controllerId = controller.getIdentifier().toString();
+                if(!biomeTag.contains(controllerId, NbtElement.COMPOUND_TYPE)){
+                    return;
+                }
+                var controllerTag = biomeTag.getCompound(controllerId);
+                if(controllerTag.isEmpty()){
+                    return;
+                }
+                //noinspection unchecked
+                ((WeatherController<Object>)controller).readNbt(state, controllerTag);
+            });
+        });
     }
     
     /**
      * Saves the weather state to disk.
      */
-    public void save(){
+    public void save(DynamicRegistryManager registryManager){
+        var biomeRegistry = registryManager.get(Registry.BIOME_KEY);
+        
         var compound = new NbtCompound();
-        for(var controller : controllers.values()){
-            var tag = controller.save();
-            if(tag.isEmpty()){
-                continue;
+        controllers.forEach((biome, controllerMap)->{
+            var biomeId = biomeRegistry.getId(biome);
+            if(biomeId == null){
+                // How?
+                throw new RuntimeException("Biome ID was null for biome " + biome);
             }
-            compound.put(controller.getId().toString(), tag);
-        }
+            
+            var biomeTag = new NbtCompound();
+            controllerMap.forEach((controller, state)->{
+                @SuppressWarnings("unchecked")
+                var controllerTag = ((WeatherController<Object>)controller).writeNbt(state);
+                if(controllerTag == null || controllerTag.isEmpty()){
+                    return;
+                }
+                var controllerId = controller.getIdentifier().toString();
+                biomeTag.put(controllerId, controllerTag);
+            });
+            
+            if(biomeTag.isEmpty()){
+                return;
+            }
+            
+            compound.put(biomeId.toString(), biomeTag);
+        });
 
         try{
             Files.createDirectories(savePath.getParent());
@@ -254,6 +384,16 @@ public final class AetherWeatherController{
         }
     }
     
+    @SuppressWarnings("unchecked")
+    private <T> Optional<T> getControllerState(Biome biome, WeatherController<T> controller){
+        var controllerMap = controllers.get(biome);
+        if(controllerMap == null){
+            return Optional.empty();
+        }
+        var state = controllerMap.get(controller);
+        return Optional.ofNullable((T)state);
+    }
+    
     /**
      * Gets the amount of time before weather changes in a biome.
      *
@@ -261,13 +401,9 @@ public final class AetherWeatherController{
      * @param type The weather to query
      * @return Time in ticks or empty if failed
      */
-    public OptionalInt getWeatherDuration(Biome biome, AetherWeatherType type){
-        var controller = getWeatherController(biome);
-        if(controller.isPresent()){
-            return controller.get().get(type);
-        }else{
-            return OptionalInt.empty();
-        }
+    public <T> OptionalInt getWeatherDuration(Biome biome, WeatherController<T> type){
+        var state = getControllerState(biome, type);
+        return state.map((value)->OptionalInt.of(type.getDuration(value))).orElseGet(OptionalInt::empty);
     }
     
     /**
@@ -278,8 +414,14 @@ public final class AetherWeatherController{
      * @param duration The duration of the weather
      * @return True if it succeeded, false otherwise
      */
-    public boolean setWeather(Biome biome, AetherWeatherType type, int duration){
-        return getWeatherController(biome).map((controller)->controller.set(type, duration)).orElse(false);
+    public <T> boolean setWeather(Biome biome, WeatherController<T> type, int duration){
+        return getControllerState(biome, type)
+            .map((value)->type.set(value, duration))
+            .orElse(false);
+    }
+    
+    public <T> boolean isWeatherActive(Biome biome, WeatherController<T> controller){
+        return getControllerState(biome, controller).filter(controller::isActive).isPresent();
     }
     
     /**
@@ -288,7 +430,17 @@ public final class AetherWeatherController{
      * @param biome The biome to query
      * @return The controller or empty on error
      */
-    public Optional<BiomeWeatherController> getWeatherController(Biome biome){
-        return Optional.ofNullable(controllers.get(biome));
+    public Optional<Set<WeatherController<?>>> getWeatherControllers(Biome biome){
+        var controllers = this.controllers.get(biome);
+        if(controllers == null || controllers.isEmpty()){
+            return Optional.empty();
+        }else{
+            return Optional.of(controllers.keySet());
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T> Optional<WeatherController<T>> getController(Identifier identifier){
+        return Optional.ofNullable((WeatherController<T>)WEATHER_REGISTRY.get(identifier));
     }
 }

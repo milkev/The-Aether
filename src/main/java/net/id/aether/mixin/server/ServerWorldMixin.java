@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldGenerationProgressListener;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.*;
 import net.minecraft.world.dimension.DimensionType;
@@ -34,6 +35,8 @@ public abstract class ServerWorldMixin extends World implements ServerWorldDuck{
     @Shadow private int idleTimeout;
 
     @Shadow @Final EntityList entityList;
+    
+    @Shadow public abstract DynamicRegistryManager getRegistryManager();
     
     // Will only be non-null on the Aether world.
     @Unique private AetherWeatherController the_aether$weatherController;
@@ -106,7 +109,7 @@ public abstract class ServerWorldMixin extends World implements ServerWorldDuck{
     )
     private void saveLevel(CallbackInfo ci){
         if(the_aether$weatherController != null){
-            the_aether$weatherController.save();
+            the_aether$weatherController.save(getRegistryManager());
         }
     }
     

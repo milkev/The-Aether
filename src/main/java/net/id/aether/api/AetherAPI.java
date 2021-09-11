@@ -1,10 +1,14 @@
 package net.id.aether.api;
 
+import java.util.Objects;
 import net.id.aether.api.moa.MoaType;
+import net.id.aether.world.weather.AetherWeatherController;
+import net.id.aether.world.weather.WeatherController;
 import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
 import java.util.Random;
+import org.jetbrains.annotations.NotNull;
 
 public class AetherAPI {
 
@@ -60,6 +64,11 @@ public class AetherAPI {
 
     public int getMoaRegistrySize() {
         return moaListSize;
+    }
+    
+    public <S, T extends WeatherController<S>> T registerWeatherController(@NotNull T controller){
+        Objects.requireNonNull(controller, "controller was null");
+        return AetherWeatherController.registerWeatherController(controller);
     }
 
 }

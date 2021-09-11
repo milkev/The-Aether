@@ -5,6 +5,7 @@ import java.util.Random;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.id.aether.world.dimension.AetherDimension;
+import net.id.aether.world.weather.AetherWeatherController;
 import net.id.aether.world.weather.AetherWeatherType;
 import net.id.aether.world.weather.ClientWeatherController;
 import net.minecraft.client.MinecraftClient;
@@ -12,6 +13,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.BlockRenderView;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
@@ -79,6 +81,8 @@ public abstract class WorldRendererMixin{
         //TODO
         float rainGradient = 1;
         
+        var biomeRegistry = world.getRegistryManager().get(Registry.BIOME_KEY);
+        
         for(int blockY = z - weatherDistance; blockY <= z + weatherDistance; blockY++){
             for(int blockX = x - weatherDistance; blockX <= x + weatherDistance; blockX++){
                 int offsetIndex = (blockY - z + 16) * 32 + blockX - x + 16;
@@ -86,14 +90,14 @@ public abstract class WorldRendererMixin{
                 double zOffset = field_20795[offsetIndex] * 0.5D;
                 mutable.set(blockX, 0, blockY);
                 Biome biome = world.getBiome(mutable);
-                var optionalWeather = ClientWeatherController.getWeatherController(biome);
-                if(optionalWeather.isEmpty()){
+                var biomeId = biomeRegistry.getId(biome);
+                if(biomeId == null){
+                    //How?
                     continue;
                 }
-                var weather = optionalWeather.get();
                 
-                boolean isRaining = weather.has(AetherWeatherType.RAIN);
-                boolean isSnowing = weather.has(AetherWeatherType.SNOW);
+                boolean isRaining = ClientWeatherController.has(biomeId, AetherWeatherController.CONTROLLER_RAIN);
+                boolean isSnowing = ClientWeatherController.has(biomeId, AetherWeatherController.CONTROLLER_SNOW);
                 if(!(isRaining || isSnowing)){
                     continue;
                 }

@@ -1,15 +1,16 @@
 package net.id.aether.commands;
 
-import net.id.aether.duck.ServerWorldDuck;
-import net.id.aether.world.dimension.AetherDimension;
-import net.id.aether.world.weather.AetherWeatherType;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalInt;
+import net.id.aether.duck.ServerWorldDuck;
+import net.id.aether.world.dimension.AetherDimension;
+import net.id.aether.world.weather.AetherWeatherController;
+import net.id.aether.world.weather.WeatherController;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -50,9 +51,9 @@ final class WeatherCommand{
      * Suggests all values of the weather.
      */
     private static final SuggestionProvider<ServerCommandSource> WEATHER_SUGGESTER = (context, builder)->{
-        for(var type : AetherWeatherType.values()){
-            builder.suggest(type.getName());
-        }
+        AetherWeatherController.getControllers().forEach((controller)->
+            builder.suggest(controller.getIdentifier().toString())
+        );
         return builder.buildFuture();
     };
     
@@ -62,7 +63,7 @@ final class WeatherCommand{
                 .then(literal("aether")
                     .then(argument("biome", IdentifierArgumentType.identifier()).suggests(BIOME_SUGGESTER)
                         .then(literal("set")
-                            .then(argument("type", StringArgumentType.word()).suggests(WEATHER_SUGGESTER)
+                            .then(argument("type", IdentifierArgumentType.identifier()).suggests(WEATHER_SUGGESTER)
                                 .executes((context)->executeSet(context, false))
                                 .then(argument("duration", IntegerArgumentType.integer(0, 1000000))
                                     .executes((context)->executeSet(context, true))
@@ -70,7 +71,7 @@ final class WeatherCommand{
                             )
                         )
                         .then(literal("get")
-                            .then(argument("type", StringArgumentType.word()).suggests(WEATHER_SUGGESTER)
+                            .then(argument("type", IdentifierArgumentType.identifier()).suggests(WEATHER_SUGGESTER)
                                 .executes(WeatherCommand::executeGet)
                             )
                         )
@@ -106,13 +107,13 @@ final class WeatherCommand{
      * @param context The command context
      * @return The weather type or null if it failed
      */
-    private static AetherWeatherType getWeatherType(CommandContext<ServerCommandSource> context){
-        var string = StringArgumentType.getString(context, "type");
-        var type = AetherWeatherType.getValue(string);
-        if(type == null){
+    private static <T> WeatherController<T> getWeatherType(AetherWeatherController controller, CommandContext<ServerCommandSource> context){
+        var string = IdentifierArgumentType.getIdentifier(context, "type");
+        Optional<WeatherController<T>> type = controller.getController(string);
+        return type.orElseGet(()->{
             context.getSource().sendError(new TranslatableText("commands.aether.weather.invalid_type", string));
-        }
-        return type;
+            return null;
+        });
     }
     
     /**
@@ -137,7 +138,7 @@ final class WeatherCommand{
             var world = getAetherWorld(context);
             var controller = world.the_aether$getWeatherController();
     
-            var type = getWeatherType(context);
+            var type = getWeatherType(controller, context);
             if(type == null){
                 // Status is already sent to the user
                 return 0;
@@ -154,14 +155,11 @@ final class WeatherCommand{
             // Get the weather, empty if the biome doesn't support that weather type
             OptionalInt time = controller.getWeatherDuration(biome, type);
             if(time.isPresent()){
-                // We know this is valid because the getWeather command didn't fail
-                @SuppressWarnings("OptionalGetWithoutIsPresent")
-                var biomeController = controller.getWeatherController(biome).get();
-                var state = biomeController.hasRaw(type);
+                var state = controller.isWeatherActive(biome, type);
                 // Return the amount of time the current state lasts
                 source.sendFeedback(new TranslatableText(
                     state ? "commands.aether.weather.get.active" : "commands.aether.weather.get.inactive",
-                    type.getName(),
+                    type.getIdentifier(),
                     time.getAsInt()
                 ), false);
                 return 1;
@@ -188,7 +186,7 @@ final class WeatherCommand{
             var world = getAetherWorld(context);
             var controller = world.the_aether$getWeatherController();
     
-            var type = getWeatherType(context);
+            var type = getWeatherType(controller, context);
             if(type == null){
                 // Status is already sent to the user
                 return 0;

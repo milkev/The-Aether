@@ -22,6 +22,9 @@ public class AetherDimension {
     public static final RegistryKey<Biome> HIGHLANDS_FOREST = RegistryKey.of(Registry.BIOME_KEY, Aether.locate("aether_highlands_forest"));
     public static final RegistryKey<Biome> HIGHLANDS_THICKET = RegistryKey.of(Registry.BIOME_KEY, Aether.locate("aether_highlands_thicket"));
     public static final RegistryKey<Biome> WISTERIA_WOODS = RegistryKey.of(Registry.BIOME_KEY, Aether.locate("aether_wisteria_woods"));
+    public static final RegistryKey<Biome> AUTUMNAL_TUNDRA = RegistryKey.of(Registry.BIOME_KEY, Aether.locate("autumnal_tundra"));
+    public static final RegistryKey<Biome> CONTINENTAL_PLATO = RegistryKey.of(Registry.BIOME_KEY, Aether.locate("continental_plato"));
+    public static final RegistryKey<Biome> HIGHLANDS_SHIELD = RegistryKey.of(Registry.BIOME_KEY, Aether.locate("highlands_shield"));
 
     public static final SurfaceBuilder<AetherSurfaceBuilderConfig> AETHER_SURFACE_BUILDER =
             Registry.register(Registry.SURFACE_BUILDER, Aether.locate("surface_builder"), new AetherSurfaceBuilder());
