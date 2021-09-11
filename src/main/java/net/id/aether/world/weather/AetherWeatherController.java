@@ -60,8 +60,8 @@ public final class AetherWeatherController{
      */
     private static final Map<WeatherController<?>, Set<RegistryKey<Biome>>> WEATHER_TAGS = new Object2ObjectOpenHashMap<>();
     
-    public static final VanillaWeatherController CONTROLLER_RAIN = registerWeatherController(new VanillaWeatherController(locate("rain")));
-    public static final VanillaWeatherController CONTROLLER_SNOW = registerWeatherController(new VanillaWeatherController(locate("snow")));
+    public static final VanillaWeatherController CONTROLLER_RAIN = registerWeatherController(new VanillaWeatherController(false));
+    public static final VanillaWeatherController CONTROLLER_SNOW = registerWeatherController(new VanillaWeatherController(true));
     public static final ThunderWeatherController CONTROLLER_THUNDER = registerWeatherController(new ThunderWeatherController(locate("thunder")));
     public static final ThunderWeatherController CONTROLLER_THUNDER_SNOW = registerWeatherController(new ThunderWeatherController(locate("thunder_snow")));
     

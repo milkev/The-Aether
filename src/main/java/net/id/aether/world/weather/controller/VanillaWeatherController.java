@@ -1,31 +1,38 @@
 package net.id.aether.world.weather.controller;
 
-import java.util.Objects;
 import java.util.Random;
 import net.id.aether.world.weather.WeatherController;
+import net.id.aether.world.weather.WeatherRenderer;
+import net.id.aether.world.weather.renderer.RainWeatherRenderer;
+import net.id.aether.world.weather.renderer.SnowWeatherRenderer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class VanillaWeatherController implements WeatherController<VanillaWeatherController.State>{
-    private final Identifier identifier;
+import static net.id.aether.Aether.locate;
+
+public final class VanillaWeatherController implements WeatherController<VanillaWeatherController.State>{
+    private static final Identifier IDENTIFIER_RAIN = locate("rain");
+    private static final Identifier IDENTIFIER_SNOW = locate("snow");
     
-    public VanillaWeatherController(@NotNull Identifier identifier){
-        Objects.requireNonNull(identifier, "identifier was null");
-        this.identifier = identifier;
+    private static final RainWeatherRenderer RENDERER_RAIN = new RainWeatherRenderer();
+    private static final SnowWeatherRenderer RENDERER_SNOW = new SnowWeatherRenderer();
+    
+    private final boolean isSnow;
+    
+    public VanillaWeatherController(boolean isSnow){
+        this.isSnow = isSnow;
     }
     
     @Override
     public @NotNull Identifier getIdentifier(){
-        return identifier;
+        return isSnow ? IDENTIFIER_RAIN : IDENTIFIER_SNOW;
     }
     
-    @Nullable
     @Override
-    public State createState(@NotNull Biome biome){
+    public @NotNull State createState(@NotNull Biome biome){
         var state = new State();
         state.active = true;
         return state;
@@ -65,7 +72,7 @@ public class VanillaWeatherController implements WeatherController<VanillaWeathe
     }
     
     @Override
-    public @Nullable NbtCompound writeNbt(@NotNull State state){
+    public @NotNull NbtCompound writeNbt(@NotNull State state){
         var tag = new NbtCompound();
         tag.putInt("time", state.time);
         tag.putBoolean("active", state.active);
@@ -96,10 +103,20 @@ public class VanillaWeatherController implements WeatherController<VanillaWeathe
         return state.active;
     }
     
+    @SuppressWarnings("unchecked")
+    @Override
+    public @NotNull WeatherRenderer<State, ?> getRenderer(){
+        return isSnow ? RENDERER_SNOW : RENDERER_RAIN;
+    }
+    
     public static final class State{
         private int time;
         private boolean active;
         private boolean wasActive;
         private boolean wasSet;
+    
+        public boolean isActive(){
+            return active;
+        }
     }
 }

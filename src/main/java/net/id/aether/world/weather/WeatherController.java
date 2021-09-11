@@ -37,4 +37,9 @@ public interface WeatherController<T>{
     boolean set(@NotNull T state, int duration);
     
     boolean isActive(@NotNull T state);
+    
+    @Environment(EnvType.CLIENT)
+    default @Nullable <C> WeatherRenderer<T, C> getRenderer(){
+        return null;
+    }
 }

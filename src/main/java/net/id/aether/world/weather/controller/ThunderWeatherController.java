@@ -8,9 +8,8 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ThunderWeatherController implements WeatherController<ThunderWeatherController.State>{
+public final class ThunderWeatherController implements WeatherController<ThunderWeatherController.State>{
     private final Identifier identifier;
     
     public ThunderWeatherController(@NotNull Identifier identifier){
@@ -23,7 +22,6 @@ public class ThunderWeatherController implements WeatherController<ThunderWeathe
         return identifier;
     }
     
-    @Nullable
     @Override
     public State createState(@NotNull Biome biome){
         var state = new State();
@@ -65,7 +63,7 @@ public class ThunderWeatherController implements WeatherController<ThunderWeathe
     }
     
     @Override
-    public @Nullable NbtCompound writeNbt(@NotNull State state){
+    public @NotNull NbtCompound writeNbt(@NotNull State state){
         var tag = new NbtCompound();
         tag.putInt("time", state.time);
         tag.putBoolean("active", state.active);
