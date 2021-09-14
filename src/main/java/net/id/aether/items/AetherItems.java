@@ -27,7 +27,6 @@ import net.minecraft.block.FluidDrainable;
 import net.minecraft.block.dispenser.ItemDispenserBehavior;
 import net.minecraft.block.entity.DispenserBlockEntity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.*;
@@ -566,6 +565,7 @@ public class AetherItems {
     public static final BlockItem BOREAL_WISTERIA_HANGER = add("boreal_wisteria_hanger", AetherBlocks.BOREAL_WISTERIA_HANGER, block, compostable30);
 
     public static final BlockItem AETHER_GRASS = add("aether_grass_plant", AetherBlocks.AETHER_GRASS, block, compostable30);
+    public static final BlockItem AETHER_GRASS_FLOWERING = add("aether_grass_flowering", AetherBlocks.AETHER_GRASS_FLOWERING, block, compostable30);
     public static final BlockItem AETHER_TALL_GRASS = add("aether_tall_grass", AetherBlocks.AETHER_TALL_GRASS, block, compostable50);
     public static final BlockItem AETHER_FERN = add("aether_fern", AetherBlocks.AETHER_FERN, block, compostable30);
     public static final BlockItem AETHER_BUSH = add("aether_bush", AetherBlocks.AETHER_BUSH, block, compostable30);
@@ -573,6 +573,14 @@ public class AetherItems {
     public static final BlockItem HONEY_NETTLE = add("honey_nettle", AetherBlocks.HONEY_NETTLE, block, compostable50);
     public static final BlockItem HALOPHIA = add("halophia", AetherBlocks.HALOPHIA, block, compostable30);
     public static final BlockItem GIANT_LILY = add("giant_lily", new LilyPadItem(AetherBlocks.GIANT_LILY, hat), compostable100);
+    public static final BlockItem WEEPING_CLOUDBURST = add("weeping_cloudburst", AetherBlocks.WEEPING_CLOUDBURST, block, compostable30);
+    public static final BlockItem MOSS_STAR = add("moss_star", AetherBlocks.MOSS_STAR, block, compostable50);
+    public static final BlockItem MOSS_BALL = add("moss_ball", AetherBlocks.MOSS_BALL, block, compostable30);
+
+    public static final BlockItem LICHEN = add("lichen", AetherBlocks.LICHEN, block, compostable50);
+    public static final BlockItem LICHEN_PILE = add("lichen_pile", AetherBlocks.LICHEN_PILE, block, compostable30);
+    public static final BlockItem LUCATIEL_LICHEN = add("lucatiel_lichen", AetherBlocks.LUCATIEL_LICHEN, block, compostable50);
+    public static final BlockItem LUCATIEL_LICHEN_PILE = add("lucatiel_lichen_pile", AetherBlocks.LUCATIEL_LICHEN_PILE, block, compostable100);
 
     public static final BlockItem ANCIENT_FLOWER = add("ancient_flower", AetherBlocks.ANCIENT_FLOWER, block, compostable65);
     public static final BlockItem ATARAXIA = add("ataraxia", AetherBlocks.ATARAXIA, block, compostable65);
