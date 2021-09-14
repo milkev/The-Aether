@@ -1,7 +1,6 @@
 package net.id.aether.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.util.Objects;
@@ -12,6 +11,7 @@ import net.id.aether.world.dimension.AetherDimension;
 import net.id.aether.world.weather.AetherWeatherController;
 import net.id.aether.world.weather.WeatherController;
 import net.minecraft.command.argument.IdentifierArgumentType;
+import net.minecraft.command.argument.NbtCompoundArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
@@ -29,7 +29,7 @@ import static net.minecraft.server.command.CommandManager.literal;
  * This "overlaps" with vanilla on purpose, it is unlikely to conflict because of the required "aether" keyword.<br>
  * <br>
  * Usage:<br>
- * /weather aether set (biome) (weather) [time]<br>
+ * /weather aether set (biome) (weather) (nbt)<br>
  * /weather aether get (biome) (weather)
  */
 final class WeatherCommand{
@@ -61,16 +61,17 @@ final class WeatherCommand{
         dispatcher.register(
             literal("weather").requires((source)->source.hasPermissionLevel(2))
                 .then(literal("aether")
-                    .then(argument("biome", IdentifierArgumentType.identifier()).suggests(BIOME_SUGGESTER)
-                        .then(literal("set")
+                    .then(literal("set")
+                        .then(argument("biome", IdentifierArgumentType.identifier()).suggests(BIOME_SUGGESTER)
                             .then(argument("type", IdentifierArgumentType.identifier()).suggests(WEATHER_SUGGESTER)
-                                .executes((context)->executeSet(context, false))
-                                .then(argument("duration", IntegerArgumentType.integer(0, 1000000))
-                                    .executes((context)->executeSet(context, true))
+                                .then(argument("data", NbtCompoundArgumentType.nbtCompound())
+                                    .executes(WeatherCommand::executeSet)
                                 )
                             )
                         )
-                        .then(literal("get")
+                    )
+                    .then(literal("get")
+                        .then(argument("biome", IdentifierArgumentType.identifier()).suggests(BIOME_SUGGESTER)
                             .then(argument("type", IdentifierArgumentType.identifier()).suggests(WEATHER_SUGGESTER)
                                 .executes(WeatherCommand::executeGet)
                             )
@@ -153,14 +154,13 @@ final class WeatherCommand{
             var source = context.getSource();
     
             // Get the weather, empty if the biome doesn't support that weather type
-            OptionalInt time = controller.getWeatherDuration(biome, type);
-            if(time.isPresent()){
-                var state = controller.isWeatherActive(biome, type);
+            var data = controller.getWeather(biome, type);
+            if(data.isPresent()){
                 // Return the amount of time the current state lasts
                 source.sendFeedback(new TranslatableText(
-                    state ? "commands.aether.weather.get.active" : "commands.aether.weather.get.inactive",
+                    "commands.aether.weather.get",
                     type.getIdentifier(),
-                    time.getAsInt()
+                    data.get()
                 ), false);
                 return 1;
             }else{
@@ -178,10 +178,9 @@ final class WeatherCommand{
      * Handles the set command.
      *
      * @param context The context of the command
-     * @param durationSpecified Whether the time was specified
      * @return The command result
      */
-    private static int executeSet(CommandContext<ServerCommandSource> context, boolean durationSpecified){
+    private static int executeSet(CommandContext<ServerCommandSource> context){
         try{
             var world = getAetherWorld(context);
             var controller = world.the_aether$getWeatherController();
@@ -198,16 +197,10 @@ final class WeatherCommand{
                 return 0;
             }
     
-            int duration;
-            if(durationSpecified){
-                duration = IntegerArgumentType.getInteger(context, "duration");
-            }else{
-                // Same as vanilla
-                duration = 6000;
-            }
-            
+            var data = NbtCompoundArgumentType.getNbtCompound(context, "data");
+    
             var source = context.getSource();
-            if(controller.setWeather(biome, type, duration)){
+            if(controller.setWeather(biome, type, data)){
                 source.sendFeedback(new TranslatableText("commands.aether.weather.set"), false);
                 return 1;
             }else{

@@ -400,9 +400,8 @@ public final class AetherWeatherController{
      * @param type The weather to query
      * @return Time in ticks or empty if failed
      */
-    public <T> OptionalInt getWeatherDuration(Biome biome, WeatherController<T> type){
-        var state = getControllerState(biome, type);
-        return state.map((value)->OptionalInt.of(type.getDuration(value))).orElseGet(OptionalInt::empty);
+    public <T> Optional<NbtCompound> getWeather(Biome biome, WeatherController<T> type){
+        return getControllerState(biome, type).map(type::writeNbt);
     }
     
     /**
@@ -410,12 +409,12 @@ public final class AetherWeatherController{
      *
      * @param biome The biome to set
      * @param type The weather to set
-     * @param duration The duration of the weather
+     * @param data The nbt tag to read
      * @return True if it succeeded, false otherwise
      */
-    public <T> boolean setWeather(Biome biome, WeatherController<T> type, int duration){
+    public <T> boolean setWeather(Biome biome, WeatherController<T> type, NbtCompound data){
         return getControllerState(biome, type)
-            .map((value)->type.set(value, duration))
+            .map((value)->type.set(value, data))
             .orElse(false);
     }
     

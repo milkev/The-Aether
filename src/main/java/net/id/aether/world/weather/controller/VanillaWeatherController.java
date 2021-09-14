@@ -6,6 +6,7 @@ import net.id.aether.world.weather.WeatherRenderer;
 import net.id.aether.world.weather.renderer.RainWeatherRenderer;
 import net.id.aether.world.weather.renderer.SnowWeatherRenderer;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
@@ -91,11 +92,14 @@ public final class VanillaWeatherController implements WeatherController<Vanilla
     }
     
     @Override
-    public boolean set(@NotNull State state, int duration){
-        state.time = duration;
-        state.active = true;
-        state.wasSet = true;
-        return true;
+    public boolean set(@NotNull State state, NbtCompound data){
+        if(data.contains("time", NbtElement.INT_TYPE) && data.contains("active", NbtElement.BYTE_TYPE)){
+            readNbt(state, data);
+            state.wasSet = true;
+            return true;
+        }else{
+            return false;
+        }
     }
     
     @Override

@@ -7,104 +7,126 @@ import net.fabricmc.api.Environment;
 import net.id.aether.mixin.client.render.WorldRendererAccessor;
 import net.id.aether.world.weather.WeatherRenderer;
 import net.id.aether.world.weather.controller.VanillaWeatherController;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.Heightmap;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static net.minecraft.client.render.WorldRenderer.getLightmapCoordinates;
 
 @Environment(EnvType.CLIENT)
 public final class RainWeatherRenderer implements WeatherRenderer<VanillaWeatherController.State, RainWeatherRenderer.ClientState>{
+    private ClientWorld world;
+    private Tessellator tessellator;
+    private BufferBuilder bufferBuilder;
+    private Vec3i cameraPos;
+    private float[] field_20794;
+    private float[] field_20795;
+    
     @Override
     public RainWeatherRenderer.ClientState createState(VanillaWeatherController.@Nullable State state){
         return new ClientState(state.isActive());
     }
     
     @Override
-    public <R extends WorldRenderer & WorldRendererAccessor> void render(@NotNull VanillaWeatherController.State state, @Nullable ClientState clientState, ClientWorld world, R renderer, BlockPos pos, float tickDelta, float ticks, int weatherDistance, Vec3d floatCameraPos, Vec3i intCameraPos){
-        if(!state.isActive()){
-            return;
+    public <R extends WorldRenderer & WorldRendererAccessor> void setupState(LightmapTextureManager manager, R renderer, float tickDelta, Vec3d cameraPos){
+        manager.enable();
+        world = renderer.getClient().world;
+        tessellator = Tessellator.getInstance();
+        bufferBuilder = tessellator.getBuffer();
+    
+        RenderSystem.disableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(MinecraftClient.isFabulousGraphicsOrBetter());
+    
+        RenderSystem.setShader(GameRenderer::getParticleShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    
+        this.cameraPos = new Vec3i(
+            MathHelper.floor(cameraPos.getX()),
+            MathHelper.floor(cameraPos.getY()),
+            MathHelper.floor(cameraPos.getZ())
+        );
+    
+        field_20794 = renderer.getField_20794();
+        field_20795 = renderer.getField_20795();
+    }
+    
+    @Override
+    public <R extends WorldRenderer & WorldRendererAccessor> void render(BlockPos weatherPos, VanillaWeatherController.State state, ClientState clientState, R renderer, int renderDistance, float tickDelta, Vec3d cameraPos){
+        var cameraPosX = this.cameraPos.getX();
+        var cameraPosY = this.cameraPos.getY();
+        var cameraPosZ = this.cameraPos.getZ();
+    
+        var weatherX = weatherPos.getX();
+        var weatherZ = weatherPos.getZ();
+    
+        int q = (weatherZ - cameraPosZ + 16) * 32 + weatherX - cameraPosX + 16;
+        double r = field_20794[q] * 0.5D;
+        double s = field_20795[q] * 0.5D;
+    
+        int heightmap = world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, weatherPos).getY();
+        int weatherBottom = Math.max(cameraPosY - renderDistance, heightmap);
+        int weatherTop = Math.max(cameraPosY + renderDistance, heightmap);
+        int w = Math.max(heightmap, cameraPosY);
+    
+        if(weatherBottom != weatherTop){
+            @SuppressWarnings("IntegerMultiplicationImplicitCastToLong")
+            Random random = new Random(weatherX * weatherX * 3121 + weatherX * 45238971 ^ weatherZ * weatherZ * 418711 + weatherZ * 13761);
+            RenderSystem.setShaderTexture(0, WorldRendererAccessor.getRain());
+            bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_LIGHT);
+            
+            var d = cameraPos.getX();
+            var e = cameraPos.getY();
+            var g = cameraPos.getZ();
+            
+            int y = renderer.getTicks() + weatherX * weatherX * 3121 + weatherX * 45238971 + weatherZ * weatherZ * 418711 + weatherZ * 13761 & 31;
+            float z = -(y + tickDelta) / 32.0F * (3.0F + random.nextFloat());
+            double aa = weatherX + 0.5D - cameraPos.getX();
+            double ab = weatherZ + 0.5D - cameraPos.getZ();
+            float ac = (float)Math.sqrt(aa * aa + ab * ab) / renderDistance;
+            float transparency = ((1.0F - ac * ac) * 0.5F + 0.5F) /*TODO rainGradient*/;
+            int light = getLightmapCoordinates(world, weatherPos.withY(w));
+
+            bufferBuilder.vertex((double)weatherX - d - r + 0.5D, (double)weatherTop - e, (double)weatherZ - g - s + 0.5D)
+                .texture(0.0F, (float)weatherBottom * 0.25F + z)
+                .color(1.0F, 1.0F, 1.0F, transparency)
+                .light(light)
+                .next();
+            bufferBuilder .vertex((double)weatherX - d + r + 0.5D, (double)weatherTop - e, (double)weatherZ - g + s + 0.5D)
+                .texture(1.0F, (float)weatherBottom * 0.25F + z).color(1.0F, 1.0F, 1.0F, transparency)
+                .light(light)
+                .next();
+            bufferBuilder.vertex((double)weatherX - d + r + 0.5D, (double)weatherBottom - e, (double)weatherZ - g + s + 0.5D)
+                .texture(1.0F, (float)weatherTop * 0.25F + z)
+                .color(1.0F, 1.0F, 1.0F, transparency)
+                .light(light)
+                .next();
+            bufferBuilder.vertex((double)weatherX - d - r + 0.5D, (double)weatherBottom - e, (double)weatherZ - g - s + 0.5D)
+                .texture(0.0F, (float)weatherTop * 0.25F + z)
+                .color(1.0F, 1.0F, 1.0F, transparency)
+                .light(light)
+                .next();
         }
+    }
     
-        var cameraX = floatCameraPos.getX();
-        var cameraY = floatCameraPos.getY();
-        var cameraZ = floatCameraPos.getZ();
-        var x = intCameraPos.getX();
-        var y = intCameraPos.getY();
-        var z = intCameraPos.getZ();
-        var blockX = pos.getX();
-        var blockZ = pos.getZ();
-        var rendererTicks = renderer.getTicks();
-    
-        int height = world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, pos).getY();
-        
-        int lowerY = y - weatherDistance;
-        if(lowerY < height){
-            lowerY = height;
-        }
-    
-        int upperY = y + weatherDistance;
-        if(upperY < height){
-            upperY = height;
-        }
-        
-        if(lowerY == upperY){
-            return;
-        }
-    
-        int w = Math.max(height, y);
-    
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
-    
-        //TODO
-        var rainGradient = 1F;
-    
-        int offsetIndex = (blockZ - z + 16) * 32 + blockX - x + 16;
-        double xOffset = renderer.getField_20794()[offsetIndex] * 0.5D;
-        double zOffset = renderer.getField_20795()[offsetIndex] * 0.5D;
-    
-        @SuppressWarnings("IntegerMultiplicationImplicitCastToLong")
-        Random random = new Random(blockX * blockX * 3121 + blockX * 45238971 ^ blockZ * blockZ * 418711 + blockZ * 13761);
-        var mutable = pos.mutableCopy().set(blockX, lowerY, blockZ);
-        float vOffset;
-        float ad;
-    
-        // Rain
-        RenderSystem.setShaderTexture(0, WorldRendererAccessor.getRain());
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_LIGHT);
-    
-        int animationStep = rendererTicks + blockX * blockX * 3121 + blockX * 45238971 + blockZ * blockZ * 418711 + blockZ * 13761 & 31;
-        vOffset = -((float)animationStep + tickDelta) / 32.0F * (3.0F + random.nextFloat());
-        double aa = (double)blockX + 0.5D - cameraX;
-        double ab = (double)blockZ + 0.5D - cameraZ;
-        float ac = (float)Math.sqrt(aa * aa + ab * ab) / (float)weatherDistance;
-        ad = ((1.0F - ac * ac) * 0.5F + 0.5F) * rainGradient;
-        mutable.set(blockX, w, blockZ);
-        int light = WorldRenderer.getLightmapCoordinates(world, mutable);
-        bufferBuilder.vertex(blockX - cameraX - xOffset + 0.5D, upperY - cameraY, blockZ - cameraZ - zOffset + 0.5D)
-            .texture(0.0F, lowerY * 0.25F + vOffset)
-            .color(1.0F, 1.0F, 1.0F, ad)
-            .light(light)
-            .next();
-        bufferBuilder.vertex(blockX - cameraX + xOffset + 0.5D, upperY - cameraY, blockZ - cameraZ + zOffset + 0.5D)
-            .texture(1.0F, lowerY * 0.25F + vOffset)
-            .color(1.0F, 1.0F, 1.0F, ad)
-            .light(light)
-            .next();
-        bufferBuilder.vertex(blockX - cameraX + xOffset + 0.5D, lowerY - cameraY, blockZ - cameraZ + zOffset + 0.5D)
-            .texture(1.0F, upperY * 0.25F + vOffset)
-            .color(1.0F, 1.0F, 1.0F, ad)
-            .light(light)
-            .next();
-        bufferBuilder.vertex(blockX - cameraX - xOffset + 0.5D, lowerY - cameraY, blockZ - cameraZ - zOffset + 0.5D)
-            .texture(0.0F, upperY * 0.25F + vOffset)
-            .color(1.0F, 1.0F, 1.0F, ad)
-            .light(light)
-            .next();
-    
+    @Override
+    public <R extends WorldRenderer & WorldRendererAccessor> void teardownState(LightmapTextureManager manager, R renderer){
         tessellator.draw();
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
+        manager.disable();
+    
+        world = null;
+        tessellator = null;
+        bufferBuilder = null;
+        cameraPos = null;
+        field_20794 = null;
+        field_20795 = null;
     }
     
     public static final class ClientState{

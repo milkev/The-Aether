@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.Random;
 import net.id.aether.world.weather.WeatherController;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
@@ -82,11 +83,14 @@ public final class ThunderWeatherController implements WeatherController<Thunder
     }
     
     @Override
-    public boolean set(@NotNull State state, int duration){
-        state.wasSet = true;
-        state.active = true;
-        state.time = duration;
-        return true;
+    public boolean set(@NotNull State state, NbtCompound data){
+        if(data.contains("time", NbtElement.INT_TYPE) && data.contains("active", NbtElement.BYTE_TYPE)){
+            readNbt(state, data);
+            state.wasSet = true;
+            return true;
+        }else{
+            return false;
+        }
     }
     
     @Override

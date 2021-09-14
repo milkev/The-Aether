@@ -4,6 +4,8 @@ import java.util.OptionalInt;
 import java.util.Random;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.id.aether.mixin.client.render.WorldRendererAccessor;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
@@ -34,7 +36,7 @@ public interface WeatherController<T>{
     
     int getDuration(@NotNull T state);
     
-    boolean set(@NotNull T state, int duration);
+    boolean set(@NotNull T state, NbtCompound data);
     
     boolean isActive(@NotNull T state);
     

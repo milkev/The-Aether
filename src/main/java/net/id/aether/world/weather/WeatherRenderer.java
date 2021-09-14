@@ -3,6 +3,7 @@ package net.id.aether.world.weather;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.id.aether.mixin.client.render.WorldRendererAccessor;
+import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
@@ -17,5 +18,7 @@ public interface WeatherRenderer<T, C>{
         return null;
     }
     
-    <R extends WorldRenderer & WorldRendererAccessor> void render(@NotNull T state, @Nullable C clientState, ClientWorld world, R renderer, BlockPos pos, float tickDelta, float ticks, int weatherDistance, Vec3d floatCameraPos, Vec3i intCameraPos);
+    <R extends WorldRenderer & WorldRendererAccessor> void setupState(LightmapTextureManager manager, R renderer, float tickDelta, Vec3d cameraPos);
+    <R extends WorldRenderer & WorldRendererAccessor> void render(BlockPos pos, T state, C clientState, R renderer, int renderDistance, float tickDelta, Vec3d cameraPos);
+    <R extends WorldRenderer & WorldRendererAccessor> void teardownState(LightmapTextureManager manager, R renderer);
 }
