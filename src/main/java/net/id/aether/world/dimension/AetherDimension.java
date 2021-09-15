@@ -4,7 +4,6 @@ import net.id.aether.Aether;
 import net.id.aether.blocks.AetherBlocks;
 import net.id.aether.world.gen.AetherSurfaceBuilder;
 import net.id.aether.world.gen.AetherSurfaceBuilderConfig;
-import net.kyrptonaught.customportalapi.CustomPortalBlock;
 import net.kyrptonaught.customportalapi.api.CustomPortalBuilder;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.registry.Registry;
