@@ -98,7 +98,7 @@ dependencies {
 
     // Testing only, do not JiJ
     modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 
     // Custom Portal Api
     modImplementation(include("net.kyrptonaught:customportalapi:${project.customportalapi_version}"))
