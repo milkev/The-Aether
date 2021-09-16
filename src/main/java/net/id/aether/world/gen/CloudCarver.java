@@ -227,12 +227,11 @@ public class CloudCarver extends Carver<CloudCarverConfig> {
     @Override
     protected boolean carveAtPoint(CarverContext context, CloudCarverConfig config, Chunk chunk, Function<BlockPos, Biome> posToBiome, BitSet carvingMask, Random random, BlockPos.Mutable pos, BlockPos.Mutable downPos, AquiferSampler sampler, MutableBoolean foundSurface) {
         BlockState blockState = chunk.getBlockState(pos);
-        BlockState blockState2 = chunk.getBlockState(downPos.set(pos, Direction.UP));
         if (blockState.isOf(Blocks.GRASS_BLOCK) || blockState.isOf(Blocks.MYCELIUM)) {
             foundSurface.setTrue();
         }
 
-        if (!this.canCarveBlock(blockState, blockState2)) {
+        if (!this.canAlwaysCarveBlock(blockState)) {
             return false;
         } else {
             BlockState blockState3 = this.getState(context, config, pos, sampler);
@@ -258,7 +257,7 @@ public class CloudCarver extends Carver<CloudCarverConfig> {
     }
 
     @Override
-    protected boolean canCarveBlock(BlockState state, BlockState stateAbove) {
+    protected boolean canAlwaysCarveBlock(BlockState state) {
         return state.isAir();
     }
 }

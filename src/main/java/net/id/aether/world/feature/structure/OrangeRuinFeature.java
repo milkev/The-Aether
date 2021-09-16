@@ -15,6 +15,8 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.StructureFeature;
 
+import java.util.function.Predicate;
+
 public class OrangeRuinFeature extends StructureFeature<DefaultFeatureConfig> {
     public OrangeRuinFeature(Codec<DefaultFeatureConfig> codec) {
         super(codec);
@@ -37,7 +39,7 @@ public class OrangeRuinFeature extends StructureFeature<DefaultFeatureConfig> {
         }
 
         @Override
-        public void init(DynamicRegistryManager registryManager, ChunkGenerator chunkGenerator, StructureManager manager, ChunkPos pos, Biome biome, DefaultFeatureConfig config, HeightLimitView world) {
+        public void init(DynamicRegistryManager registryManager, ChunkGenerator chunkGenerator, StructureManager manager, ChunkPos pos, DefaultFeatureConfig featureConfig, HeightLimitView world, Predicate<Biome> predicate) {
             int x = pos.x * 16;
             int z = pos.z * 16;
             int y = chunkGenerator.getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG, world);

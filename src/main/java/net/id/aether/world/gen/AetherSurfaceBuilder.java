@@ -2,6 +2,7 @@ package net.id.aether.world.gen;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.class_6557;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
@@ -15,7 +16,7 @@ public class AetherSurfaceBuilder extends SurfaceBuilder<AetherSurfaceBuilderCon
     }
 
     @Override
-    public void generate(Random random, Chunk chunk, Biome biome, int x, int z, int height, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, int i, long seed, AetherSurfaceBuilderConfig config) {
+    public void generate(Random random, class_6557 chunk, Biome biome, int x, int z, int height, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, int i, long l, AetherSurfaceBuilderConfig config) {
         BlockState topState = config.getTopMaterial();
         BlockState underState = config.getUnderMaterial();
         BlockPos.Mutable mut = new BlockPos.Mutable();
@@ -26,7 +27,7 @@ public class AetherSurfaceBuilder extends SurfaceBuilder<AetherSurfaceBuilderCon
 
         for (int m = height; m >= 0; --m) {
             mut.set(cX, m, cZ);
-            BlockState blockState3 = chunk.getBlockState(mut);
+            BlockState blockState3 = chunk.getState(m);
             if (blockState3.isAir()) {
                 maxDepth = -1;
             } else if (blockState3.isOf(defaultBlock.getBlock())) {
@@ -51,17 +52,17 @@ public class AetherSurfaceBuilder extends SurfaceBuilder<AetherSurfaceBuilderCon
 
                     maxDepth = depth;
                     if (m >= seaLevel - 1) {
-                        chunk.setBlockState(mut, topState, false);
+                        chunk.method_38092(m, topState);
                     } else if (m < seaLevel - 7 - depth) {
                         topState = Blocks.AIR.getDefaultState();
                         underState = defaultBlock;
-                        chunk.setBlockState(mut, config.getUnderwaterMaterial(), false);
+                        chunk.method_38092(m, config.getUnderwaterMaterial());
                     } else {
-                        chunk.setBlockState(mut, underState, false);
+                        chunk.method_38092(m, underState);
                     }
                 } else if (maxDepth > 0) {
                     --maxDepth;
-                    chunk.setBlockState(mut, underState, false);
+                    chunk.method_38092(m, underState);
 
                 }
             }

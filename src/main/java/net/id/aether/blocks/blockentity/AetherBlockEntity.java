@@ -55,9 +55,9 @@ public abstract class AetherBlockEntity extends BlockEntity implements Inventory
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public void writeNbt(NbtCompound nbt) {
         Inventories.writeNbt(nbt, inventory);
-        return super.writeNbt(nbt);
+        super.writeNbt(nbt);
     }
 
     @Override

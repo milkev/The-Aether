@@ -22,6 +22,8 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.StructureFeature;
 
+import java.util.function.Predicate;
+
 public class SkyrootTowerFeature extends StructureFeature<DefaultFeatureConfig> {
     public SkyrootTowerFeature(Codec<DefaultFeatureConfig> codec) {
         super(codec);
@@ -33,7 +35,7 @@ public class SkyrootTowerFeature extends StructureFeature<DefaultFeatureConfig> 
     }
 
     @Override
-    protected boolean shouldStartAt(ChunkGenerator chunkGenerator, BiomeSource biomeSource, long worldSeed, ChunkRandom random, ChunkPos pos, Biome biome, ChunkPos chunkPos, DefaultFeatureConfig config, HeightLimitView world) {
+    protected boolean shouldStartAt(ChunkGenerator chunkGenerator, BiomeSource biomeSource, long worldSeed, ChunkRandom random, ChunkPos pos, ChunkPos chunkPos, DefaultFeatureConfig featureConfig, HeightLimitView world) {
         return chunkGenerator.getHeight(chunkPos.x * 16, chunkPos.z * 16, Heightmap.Type.WORLD_SURFACE_WG, world) >= 7;
     }
 
@@ -49,7 +51,7 @@ public class SkyrootTowerFeature extends StructureFeature<DefaultFeatureConfig> 
         }
 
         @Override
-        public void init(DynamicRegistryManager registryManager, ChunkGenerator chunkGenerator, StructureManager manager, ChunkPos pos, Biome biome, DefaultFeatureConfig config, HeightLimitView world) {
+        public void init(DynamicRegistryManager registryManager, ChunkGenerator chunkGenerator, StructureManager manager, ChunkPos pos, DefaultFeatureConfig featureConfig, HeightLimitView world, Predicate<Biome> predicate) {
             Structure structure = manager.getStructureOrBlank(Aether.locate("skyroot_tower"));
             BlockRotation blockRotation = BlockRotation.NONE;
             BlockPos pivot = new BlockPos(structure.getSize().getX() / 2, 0, structure.getSize().getZ() / 2);
