@@ -32,8 +32,8 @@
     "irc": "https://discord.gg/vAa35wQ2ZP"
   },
   "depends": {
-    "fabricloader": ">=0.11.3",
-    "minecraft": ">=1.17",
+    "fabricloader": ">=0.11.7",
+    "minecraft": "*",
     "java": ">=16",
     "fabric-api-base": "*",
     "fabric-registry-sync-v0": "*",
