@@ -1,6 +1,6 @@
 package net.id.aether.blocks.blockentity;
 
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+//import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.id.aether.util.InventoryWrapper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -14,7 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AetherBlockEntity extends BlockEntity implements InventoryWrapper, SidedInventory, BlockEntityClientSerializable {
+public abstract class AetherBlockEntity extends BlockEntity implements InventoryWrapper, SidedInventory/*, BlockEntityClientSerializable*/ {
 
     protected final DefaultedList<ItemStack> inventory;
     protected HopperStrategy hopperStrategy;
@@ -66,16 +66,16 @@ public abstract class AetherBlockEntity extends BlockEntity implements Inventory
         super.readNbt(nbt);
     }
 
-    @Override
-    public void fromClientTag(NbtCompound nbt) {
-        Inventories.writeNbt(nbt, inventory);
-    }
-
-    @Override
-    public NbtCompound toClientTag(NbtCompound nbt) {
-        Inventories.readNbt(nbt, inventory);
-        return nbt;
-    }
+//    @Override
+//    public void fromClientTag(NbtCompound nbt) {
+//        Inventories.writeNbt(nbt, inventory);
+//    }
+//
+//    @Override
+//    public NbtCompound toClientTag(NbtCompound nbt) {
+//        Inventories.readNbt(nbt, inventory);
+//        return nbt;
+//    }
 
     public enum HopperStrategy {
         IN_TOP_OUT_BOTTOM,
