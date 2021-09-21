@@ -2,14 +2,17 @@ package net.id.aether.client.rendering;
 
 import net.fabricmc.fabric.impl.client.rendering.ColorProviderRegistryImpl;
 import net.id.aether.blocks.AetherBlocks;
+import net.id.aether.util.DynamicColorBlock;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.color.world.FoliageColors;
 import net.minecraft.client.color.world.GrassColors;
+import net.minecraft.util.registry.Registry;
 
 public class AetherColorProviders {
     public static void initClient() {
         initBlocks();
         initItems();
+        initDynamicColorBlocks();
     }
 
     private static void initBlocks() {
@@ -21,6 +24,16 @@ public class AetherColorProviders {
     private static void initItems() {
         ColorProviderRegistryImpl.ITEM.register(((stack, tintIndex) -> 0xbce632), AetherBlocks.SKYROOT_LEAVES.asItem(), AetherBlocks.SKYROOT_LEAF_PILE.asItem());
         ColorProviderRegistryImpl.ITEM.register(((stack, tintIndex) -> 0xB1FFCB), AetherBlocks.AETHER_GRASS_BLOCK.asItem(), AetherBlocks.AETHER_GRASS.asItem(), AetherBlocks.AETHER_TALL_GRASS.asItem(), AetherBlocks.AETHER_FERN.asItem(), AetherBlocks.AETHER_BUSH.asItem());
-        ColorProviderRegistryImpl.ITEM.register(((stack, tintIndex) -> 0x599CFF), AetherBlocks.BOREAL_WISTERIA_HANGER.asItem(), AetherBlocks.BOREAL_WISTERIA_LEAVES.asItem());
+    }
+
+    private static void initDynamicColorBlocks() {
+        // Ideally we shouldn't go through the entire block registry, but it's almost instantaneous anyway
+        Registry.BLOCK.stream()
+                .filter(block -> block instanceof DynamicColorBlock)
+                .forEach(block -> {
+                    DynamicColorBlock dynamic = (DynamicColorBlock) block;
+                    ColorProviderRegistryImpl.BLOCK.register(dynamic.getBlockColorProvider(), block);
+                    ColorProviderRegistryImpl.ITEM.register(dynamic.getBlockItemColorProvider(), block.asItem());
+                });
     }
 }
