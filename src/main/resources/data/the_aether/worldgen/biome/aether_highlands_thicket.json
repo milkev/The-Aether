@@ -17,7 +17,6 @@
   "surface_builder": "the_aether:aether_surface_builder",
   "carvers": {
     "air": [
-      "cave",
       "the_aether:cold_aercloud_giant",
       "the_aether:cold_aercloud_upper",
       "the_aether:cold_aercloud_lower",
@@ -63,11 +62,6 @@
       "the_aether:crystal_tree_island_decorated"
     ]
   ],
-  "starts": [
-    "the_aether:well",
-    "the_aether:skyroot_tower",
-    "the_aether:orange_ruin"
-  ],
   "spawners": {
     "monster": [
       {
@@ -97,6 +91,7 @@
         "maxCount": 3
       }
     ],
+    "axolotls": [],
     "water_creature": [],
     "water_ambient": [],
     "misc": []
@@ -111,7 +106,5 @@
   "precipitation": "rain",
   "temperature": 0.4,
   "downfall": 2.0,
-  "category": "forest",
-  "depth": 0.125,
-  "scale": 0.05
+  "category": "forest"
 }
