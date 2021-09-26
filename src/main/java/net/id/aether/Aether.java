@@ -64,7 +64,7 @@ public class Aether implements ModInitializer, ClientModInitializer {
     @Override
     @Environment(EnvType.CLIENT)
     public void onInitializeClient() {
-        CrowdinTranslate.downloadTranslations("aether", MOD_ID);
+        //CrowdinTranslate.downloadTranslations("aether", MOD_ID);
         AetherModelPredicates.init();
         AetherArmorModels.registerArmorModels();
         AetherModelLayers.initClient();
