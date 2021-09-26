@@ -5,9 +5,6 @@
     },
     "axis=z": {
       "model": "the_aether:block/blue_portal_ew"
-    },
-    "axis=y": {
-      "model": "the_aether:block/blue_portal_flat"
     }
   }
 }

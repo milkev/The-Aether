@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id 'fabric-loom' version '0.9.+'
+    id 'fabric-loom' version '0.8-SNAPSHOT'
     id 'maven-publish'
     id "com.modrinth.minotaur" version "1.2.1"
 }
@@ -36,6 +36,7 @@ repositories {
     maven {
         url = "https://minecraft.guntram.de/maven/"
     }
+    maven { url "https://maven.jamieswhiteshirt.com/libs-release/" }
     maven {
         name = "Modmenu-Legacy"
         url = "https://maven.fabricmc.net/io/github/prospector/modmenu/"
@@ -45,10 +46,10 @@ repositories {
         url = "https://maven.fabricmc.net/"
     }
     maven { url = "https://hephaestus.dev/release" }
-    maven {
-        name = "TerraformersMC"
-        url = "https://maven.terraformersmc.com/releases/"
-    }
+//    maven {
+//        name = "TerraformersMC"
+//        url = "https://maven.terraformersmc.com/"
+//    }
     maven {
         name = "Ladysnake Libs"
         url = "https://ladysnake.jfrog.io/artifactory/mods"
@@ -62,16 +63,11 @@ repositories {
     maven {
         url = "https://jitpack.io"
     }
-    maven { url "https://maven.jamieswhiteshirt.com/libs-release/" }
     mavenCentral()
-    maven {
-        name = "gudenau's maven"
-        url = "https://maven.gudenau.net"
-    }
 }
 
-loom {
-    accessWidenerPath = file("src/main/resources/the_aether.accesswidener")
+minecraft {
+    accessWidener "src/main/resources/the_aether.accesswidener"
 }
 
 dependencies {
@@ -89,15 +85,13 @@ dependencies {
 
     modImplementation(include("io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${project.cardinal_version}"))
 
-    // Most important of the libraries :smug:
-    modImplementation include("com.github.devs-immortal:Incubus-Core:${project.incubus_version}-MILKEV-FORK")
-
     // Implement the required portions of FAPI
     // Remember to maintain these, and add the modular bits as needed. 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
     // Testing only, do not JiJ
-    // I did not JiJ (what does jij mean :thonk:)
+    //modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 
     // Custom Portal Api
     modImplementation(include("net.kyrptonaught:customportalapi:${project.customportalapi_version}"))
@@ -105,11 +99,8 @@ dependencies {
     modImplementation(include("dev.hephaestus:seedy-behavior:${project.seedy_version}"))
 
     // Implement Trinkets for parachutes, rings etc.
-    //why custom version? sus
-    modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-    //modImplementation(include("com.github.CDAGaming:trinkets:${project.trinkets_version}"))
-
-    modImplementation(include("net.gudenau.minecraft:MoreTags:${project.moretags_version}"))
+    //modImplementation(include("dev.emi:trinkets:${project.trinkets_version}"))
+    modImplementation(include("com.github.CDAGaming:trinkets:d53943eac9"))
 }
 
 processResources {

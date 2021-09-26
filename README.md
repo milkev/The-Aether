@@ -1,8 +1,3 @@
-# This Fork
-I made this fork purely to make valkyrie milk more to my liking. This removes its status effects, makes it stackable, makes it not return a vial, and adds new recipes for the milk as well as the clouds
-
-# Below is README of Aether
-
 # The Aether Reborn
 [![Code license (GNU GPL 3.0)](https://img.shields.io/badge/code%20license-GNU%20GPLv3-green.svg?style=flat)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![Asset license (Unlicensed)](https://img.shields.io/badge/assets%20license-All%20Rights%20Reserved-red.svg?style=flat)](https://creativecommons.org/licenses/by-sa/4.0/)

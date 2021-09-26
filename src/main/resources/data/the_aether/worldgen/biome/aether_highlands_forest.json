@@ -2,7 +2,7 @@
   "effects": {
     "sky_color": 12632319,
     "foliage_color": 14483329,
-    "grass_color": 10088367,
+    "grass_color": 6868364,
     "fog_color": 16777215,
     "water_color": 5826047,
     "water_fog_color": 5826047,
@@ -14,23 +14,11 @@
     }
   },
   "surface_builder": "the_aether:aether_surface_builder",
-  "carvers": {
-    "air": [
-      "cave",
-      "the_aether:cold_aercloud_giant",
-      "the_aether:cold_aercloud_upper",
-      "the_aether:cold_aercloud_lower",
-      "the_aether:blue_aercloud_upper",
-      "the_aether:blue_aercloud_lower",
-      "the_aether:golden_aercloud"
-    ]
-  },
+  "carvers": {},
   "features": [
     [],
     [
-      "the_aether:lake_water",
-      "the_aether:dense_water",
-      "the_aether:large_lake"
+      "the_aether:lake_water"
     ],
     [
       "the_aether:quicksoil"
@@ -59,13 +47,15 @@
       "the_aether:flutegrass"
     ],
     [
+      "the_aether:cold_aercloud",
+      "the_aether:blue_aercloud",
+      "the_aether:golden_aercloud",
       "the_aether:crystal_tree_island_decorated"
     ]
   ],
   "starts": [
     "the_aether:well",
-    "the_aether:skyroot_tower",
-    "the_aether:orange_ruin"
+    "the_aether:skyroot_tower"
   ],
   "spawners": {
     "monster": [
@@ -86,8 +76,8 @@
       {
         "type": "the_aether:moa",
         "weight": 6,
-        "minCount": 3,
-        "maxCount": 7
+        "minCount": 1,
+        "maxCount": 3
       },
       {
         "type": "the_aether:aerwhale",
