@@ -343,6 +343,7 @@ public class AetherItems {
     public static final BlockItem WISTERIA_SLAB = add("wisteria_slab", AetherBlocks.WISTERIA_SLAB, building_block);
     // smooth stuff
     // cobble variants
+    /*
     public static final BlockItem MOSSY_HOLYSTONE = add("mossy_holystone", AetherBlocks.MOSSY_HOLYSTONE, building_block);
     public static final BlockItem GOLDEN_MOSSY_HOLYSTONE = add("golden_mossy_holystone", AetherBlocks.GOLDEN_MOSSY_HOLYSTONE, building_block);
     public static final BlockItem ANGELIC_STONE = add("angelic_stone", AetherBlocks.ANGELIC_STONE, building_block);
@@ -398,7 +399,7 @@ public class AetherItems {
     public static final BlockItem LIGHT_SENTRY_SLAB = add("light_sentry_slab", AetherBlocks.LIGHT_SENTRY_SLAB, building_block);
     public static final BlockItem LIGHT_SENTRY_STAIRS = add("light_sentry_stairs", AetherBlocks.LIGHT_SENTRY_STAIRS, building_block);
     public static final BlockItem LIGHT_SENTRY_WALL = add("light_sentry_wall", AetherBlocks.LIGHT_SENTRY_WALL, building_block);
-
+    */
     // stairs
     public static final BlockItem SKYROOT_STAIRS = add("skyroot_stairs", AetherBlocks.SKYROOT_STAIRS, building_block);
     public static final BlockItem GOLDEN_OAK_STAIRS = add("golden_oak_stairs", AetherBlocks.GOLDEN_OAK_STAIRS, building_block);
