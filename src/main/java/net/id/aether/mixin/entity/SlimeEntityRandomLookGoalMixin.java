@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(targets = "net/minecraft/entity/mob/SlimeEntity$RandomLookGoal")
-public class SlimeEntity$RandomLookGoalMixin {
+public class SlimeEntityRandomLookGoalMixin {
     @Shadow
     private int timer;
 

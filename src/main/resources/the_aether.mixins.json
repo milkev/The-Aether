@@ -13,7 +13,7 @@
     "entity.EntityMixin",
     "entity.LivingEntityMixin",
     "entity.PlayerEntityMixin",
-    "entity.SlimeEntity$RandomLookGoalMixin",
+    "entity.SlimeEntityRandomLookGoalMixin",
     "entity.SlimeMoveControlMixin",
     "fluid.FlowableFluidMixin",
     "item.ArmorMaterialsAccessor",
