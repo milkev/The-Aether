@@ -17,12 +17,13 @@
     "24Chrome - artist / developer",
     "Brandon Pearce (kingbdogz_) - GG founder / Aether creator",
     "Oscar Payn (ozzAR0th ) - GG head",
-    "Hugo Payn (DevilBringer) - GG design lead"
+    "Hugo Payn (DevilBringer) - GG design lead",
+    "Milkev - Forker"
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/aether",
-    "sources": "https://github.com/devs-immortal/The-Aether",
-    "issues": "https://github.com/devs-immortal/The-Aether/issues"
+    "sources": "https://github.com/milkev/The-Aether",
+    "issues": "https://github.com/milkev/The-Aether/issues"
   },
   "depends": {
     "fabricloader": ">=0.11.3",
