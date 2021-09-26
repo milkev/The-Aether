@@ -17,10 +17,12 @@ public class ValkyrieMilkItem extends Item {
     public UseAction getUseAction(ItemStack stack) {
         return UseAction.DRINK;
     }
-
+/*
+    //am adding my own way of obtaining these that shouldnt return the quicksoil vial
     @Override
     public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
         return user instanceof PlayerEntity player && player.getAbilities().creativeMode ?
                 super.finishUsing(stack, world, user) : new ItemStack(AetherItems.QUICKSOIL_VIAL);
     }
+ */
 }

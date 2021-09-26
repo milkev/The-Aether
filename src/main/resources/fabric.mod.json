@@ -23,13 +23,14 @@
     "Karanomuro - composer",
     "Brandon Pearce (kingbdogz_) - GG founder / Aether creator",
     "Oscar Payn (ozzAR0th ) - GG head",
-    "Hugo Payn (DevilBringer) - GG design lead"
+    "Hugo Payn (DevilBringer) - GG design lead",
+    "Milkev - Forked to chance Valkyrie Milk a lil"
   ],
   "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/aether",
-    "sources": "https://github.com/devs-immortal/The-Aether",
-    "issues": "https://github.com/devs-immortal/The-Aether/issues",
-    "irc": "https://discord.gg/vAa35wQ2ZP"
+    "homepage": "",
+    "sources": "",
+    "issues": "",
+    "irc": ""
   },
   "depends": {
     "fabricloader": ">=0.11.3",
@@ -62,7 +63,7 @@
     ],
     "modmenu": {
       "links": {
-        "modmenu.discord": "https://discord.gg/vAa35wQ2ZP"
+        "modmenu.discord": ""
       }
     }
   }

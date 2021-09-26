@@ -97,8 +97,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
     // Testing only, do not JiJ
-    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+    // I did not JiJ (what does jij mean :thonk:)
 
     // Custom Portal Api
     modImplementation(include("net.kyrptonaught:customportalapi:${project.customportalapi_version}"))
@@ -106,8 +105,9 @@ dependencies {
     modImplementation(include("dev.hephaestus:seedy-behavior:${project.seedy_version}"))
 
     // Implement Trinkets for parachutes, rings etc.
-    //modImplementation(include("dev.emi:trinkets:${project.trinkets_version}"))
-    modImplementation(include("com.github.CDAGaming:trinkets:${project.trinkets_version}"))
+    //why custom version? sus
+    modImplementation "dev.emi:trinkets:${project.trinkets_version}"
+    //modImplementation(include("com.github.CDAGaming:trinkets:${project.trinkets_version}"))
 
     modImplementation(include("net.gudenau.minecraft:MoreTags:${project.moretags_version}"))
 }

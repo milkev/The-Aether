@@ -8,6 +8,8 @@ import net.id.aether.blocks.AetherBlocks;
 import net.id.aether.entities.AetherEntityTypes;
 import net.id.aether.entities.vehicle.AetherBoatTypes;
 import net.id.aether.fluids.AetherFluids;
+import net.id.aether.items.accessories.AccessoryItem;
+import net.id.aether.items.accessories.AccessoryType;
 import net.id.aether.items.armor.AetherArmorMaterials;
 import net.id.aether.items.food.AetherFoodComponent;
 import net.id.aether.items.misc.AetherPortalItem;
@@ -164,7 +166,7 @@ public class AetherItems {
     public static final ArmorItem VALKYRIE_CHESTPLATE = add("valkyrie_chestplate", new ArmorItem(AetherArmorMaterials.VALKYRIE, CHEST, aetherLootWearable));
     public static final ArmorItem VALKYRIE_LEGGINGS = add("valkyrie_leggings", new ArmorItem(AetherArmorMaterials.VALKYRIE, LEGS, aetherLootWearable));
     public static final ArmorItem VALKYRIE_BOOTS = add("valkyrie_boots", new ArmorItem(AetherArmorMaterials.VALKYRIE, FEET, aetherLootWearable));
-    /*
+
     public static final ArmorItem SENTRY_BOOTS = add("sentry_boots", new ArmorItem(AetherArmorMaterials.SENTRY, FEET, aetherLootWearable));
 
     public static final AccessoryItem LEATHER_GLOVES = add("leather_gloves", new AccessoryItem(AccessoryType.GLOVES, 1.5f, wearable));
@@ -199,7 +201,7 @@ public class AetherItems {
     public static final AccessoryItem GOLDEN_FEATHER = add("golden_feather", new AccessoryItem(AccessoryType.MISC, aetherLootWearable));
     public static final AccessoryItem REGENERATION_STONE = add("regeneration_stone", new AccessoryItem(AccessoryType.MISC, aetherLootWearable));
     public static final AccessoryItem IRON_BUBBLE = add("iron_bubble", new AccessoryItem(AccessoryType.MISC, aetherLootWearable));
-    */
+
 
     private static Settings food(FoodComponent foodComponent) {
         return new Settings().group(AetherItemGroups.AETHER_FOOD).food(foodComponent);
@@ -216,7 +218,8 @@ public class AetherItems {
     public static final AliasedBlockItem AMADRYS_BUSHEL = add("amadrys_bushel", new AliasedBlockItem(AetherBlocks.AMADRYS, food(AetherFoodComponent.GENERIC_WORSE)), compostable30);
     public static final Item BLUE_GUMMY_SWET = add("blue_gummy_swet", new Item(food(AetherFoodComponent.GUMMY_SWET, AetherRarity.AETHER_LOOT)));
     public static final Item GOLDEN_GUMMY_SWET = add("golden_gummy_swet", new Item(food(AetherFoodComponent.GUMMY_SWET, AetherRarity.AETHER_LOOT)));
-    public static final ValkyrieMilkItem VALKYRIE_MILK = add("valkyrie_milk", new ValkyrieMilkItem(food(AetherFoodComponent.VALKYRIE_MILK, EPIC).maxCount(1)));
+    //Made max stack 64
+    public static final ValkyrieMilkItem VALKYRIE_MILK = add("valkyrie_milk", new ValkyrieMilkItem(food(AetherFoodComponent.VALKYRIE_MILK, EPIC).maxCount(64)));
     public static final Item CANDY_CANE = add("candy_cane", new Item(food(AetherFoodComponent.GENERIC)), compostable30);
     public static final Item GINGERBREAD_MAN = add("ginger_bread_man", new Item(food(AetherFoodComponent.GENERIC)), compostable30);
     public static final Item MOA_MEAT = add("moa_meat", new Item(food(AetherFoodComponent.MOA_MEAT)));
@@ -454,7 +457,8 @@ public class AetherItems {
     public static final BlockItem HALOPHIA = add("halophia", AetherBlocks.HALOPHIA, decoration, compostable30);
     public static final BlockItem GIANT_LILY = add("giant_lily", new LilyPadItem(AetherBlocks.GIANT_LILY, hat), compostable100);
     public static final BlockItem WEEPING_CLOUDBURST = add("weeping_cloudburst", AetherBlocks.WEEPING_CLOUDBURST, decoration, compostable30);
-    public static final BlockItem MOSS_STAR = add("moss_star", AetherBlocks.MOSS_STAR, decoration, compostable50);
+    //threw an error so i commented it out
+    //public static final BlockItem MOSS_STAR = add("moss_star", AetherBlocks.MOSS_STAR, decoration, compostable50);
     public static final BlockItem MOSS_BALL = add("moss_ball", AetherBlocks.MOSS_BALL, decoration, compostable30);
 
     public static final BlockItem ANCIENT_FLOWER = add("ancient_flower", AetherBlocks.ANCIENT_FLOWER, decoration, compostable65);
