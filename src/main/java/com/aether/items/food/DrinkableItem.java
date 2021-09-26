@@ -19,6 +19,7 @@ public class DrinkableItem extends Item {
         return UseAction.DRINK;
     }
 
+    /*
     @Override
     public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
         if(!(user instanceof PlayerEntity) || !((PlayerEntity) user).isCreative()) {
@@ -28,4 +29,5 @@ public class DrinkableItem extends Item {
         }
         return super.finishUsing(stack, world, user);
     }
+    */
 }
