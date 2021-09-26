@@ -343,9 +343,10 @@ public class AetherItems {
     public static final BlockItem WISTERIA_SLAB = add("wisteria_slab", AetherBlocks.WISTERIA_SLAB, building_block);
     // smooth stuff
     // cobble variants
-    /*
+
     public static final BlockItem MOSSY_HOLYSTONE = add("mossy_holystone", AetherBlocks.MOSSY_HOLYSTONE, building_block);
     public static final BlockItem GOLDEN_MOSSY_HOLYSTONE = add("golden_mossy_holystone", AetherBlocks.GOLDEN_MOSSY_HOLYSTONE, building_block);
+    /*
     public static final BlockItem ANGELIC_STONE = add("angelic_stone", AetherBlocks.ANGELIC_STONE, building_block);
     public static final BlockItem ANGELIC_CRACKED_STONE = add("angelic_stone_cracked", AetherBlocks.ANGELIC_CRACKED_STONE, building_block);
     public static final BlockItem ANGELIC_SLAB = add("angelic_slab", AetherBlocks.ANGELIC_SLAB, building_block);
@@ -459,7 +460,7 @@ public class AetherItems {
     public static final BlockItem GIANT_LILY = add("giant_lily", new LilyPadItem(AetherBlocks.GIANT_LILY, hat), compostable100);
     public static final BlockItem WEEPING_CLOUDBURST = add("weeping_cloudburst", AetherBlocks.WEEPING_CLOUDBURST, decoration, compostable30);
     //threw an error so i commented it out
-    //public static final BlockItem MOSS_STAR = add("moss_star", AetherBlocks.MOSS_STAR, decoration, compostable50);
+    public static final BlockItem MOSS_STAR = add("moss_star", AetherBlocks.MOSS_STAR, decoration, compostable50);
     public static final BlockItem MOSS_BALL = add("moss_ball", AetherBlocks.MOSS_BALL, decoration, compostable30);
 
     public static final BlockItem ANCIENT_FLOWER = add("ancient_flower", AetherBlocks.ANCIENT_FLOWER, decoration, compostable65);
